@@ -2004,21 +2004,12 @@ void CreatureObjectImplementation::activateQueueAction() {
 		nextAction.addMiliTime((uint32)(time * 1000));
 	}
 
-	if (creo->hasAttackDelay() || creo->hasPostureChangeDelay()) {
-		Reference<CommandQueueRemoveEvent*> removeEvent = new CommandQueueRemoveEvent(creo);
-
-		removeAction.updateToCurrentTime();
-		removeAction.addMiliTime((uint32)(time * 1000));
-
-		removeEvent->schedule(removeAction);
-	} else {
-		for (int i = 0; i < commandQueue->size(); i++) {
-			Reference<CommandQueueAction*> actionToDelete = commandQueue->get(i);
-
-			if (action->getCommand() == actionToDelete->getCommand() && action->getActionCounter() == actionToDelete->getActionCounter() && action->getCompareToCounter() == actionToDelete->getCompareToCounter()) {
-				commandQueue->remove(i);
-				break;
-			}
+	// Remove element from queue after it has been executed in order to ensure that other commands are enqueued and not activated at immediately.
+	for (int i = 0; i < commandQueue->size(); i++) {
+		Reference<CommandQueueAction*> actionToDelete = commandQueue->get(i);
+		if (action->getCommand() == actionToDelete->getCommand() && action->getActionCounter() == actionToDelete->getActionCounter() && action->getCompareToCounter() == actionToDelete->getCompareToCounter()) {
+			commandQueue->remove(i);
+			break;
 		}
 	}
 
