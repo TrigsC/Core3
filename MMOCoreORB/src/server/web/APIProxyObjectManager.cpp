@@ -201,7 +201,7 @@ int APIProxyObjectManager::deleteObject(APIRequest& apiRequest, uint64 oid, bool
 			}
 
 			if (dest != nullptr) {
-				auto adk = tano->removeAntiDecayKit();
+				Reference<AntiDecayKit*> adk = dynamic_cast<AntiDecayKit*>(tano->removeAntiDecayKit());
 
 				if (adk != nullptr) {
 					Reference<SceneObject*> where = dest->isPlayerCreature() ? dest : dest->getParentRecursively(SceneObjectType::PLAYERCREATURE);
@@ -214,6 +214,7 @@ int APIProxyObjectManager::deleteObject(APIRequest& apiRequest, uint64 oid, bool
 						Locker lock(dest);
 						Locker cLock(adk, dest);
 
+						adk->setUsed(false);
 						adk->initializePosition(scno->getPositionX(), scno->getPositionZ(), scno->getPositionY());
 						adk->setDirection(Math::deg2rad(scno->getDirectionAngle()));
 						dest->transferObject(adk, -1, true, true);
