@@ -3649,6 +3649,10 @@ bool CreatureObjectImplementation::isHealableBy(CreatureObject* object) {
 	return true;
 }
 
+bool CreatureObjectImplementation::isInvulnerable()  {
+	return isPlayerCreature() && (getPvpStatusBitmask() & CreatureFlag::PLAYER) == 0;
+}
+
 bool CreatureObjectImplementation::hasBountyMissionFor(CreatureObject* target) {
 	if (target == nullptr)
 		return false;
