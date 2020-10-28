@@ -21,7 +21,7 @@
 #include "server/zone/objects/player/FactionStatus.h"
 #include "server/zone/managers/player/PlayerMap.h"
 #include <map>
-
+#include "server/login/account/Account.h"
 
 void FrsManagerImplementation::initialize() {
 	auto zoneServer = this->zoneServer.get();
@@ -398,6 +398,15 @@ void FrsManagerImplementation::validatePlayerData(CreatureObject* player) {
 
 	if (ghost == nullptr)
 		return;
+
+	Reference<Account*> account = ghost->getAccount();
+
+	if (account == nullptr || account->isBanned()) {
+		removeFromFrs(player);
+		verifyRoomAccess(player, -1);
+		ghost->recalculateForcePower();
+		return;
+	}
 
 	FrsData* playerData = ghost->getFrsData();
 	int councilType = playerData->getCouncilType();
