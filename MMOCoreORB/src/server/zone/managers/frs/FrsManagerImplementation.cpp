@@ -3370,7 +3370,7 @@ bool FrsManagerImplementation::handleDarkCouncilDeath(CreatureObject* killer, Cr
 		}
 	}
 
-	if (challengeData == nullptr)
+	if (challengeData == nullptr || challengeData->isChallengeCompleted())
 		return false;
 
 	uint64 challengerID = challengeData->getChallengerID();
