@@ -421,6 +421,9 @@ class GCWManager extends ManagedService implements Logger {
 	private native void spawnGcwControlBanners();
 	
 	@local
+	private native void spawnGcwControlBanners();
+
+	@local
 	@read
 	public unsigned int getWinningFaction() {
 		return winningFaction;

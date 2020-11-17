@@ -20,7 +20,6 @@
 #include "server/zone/objects/installation/components/TurretDataComponent.h"
 
 #include "server/zone/managers/director/DirectorManager.h"
-#include "server/zone/managers/faction/FactionManager.h"
 #include "server/zone/managers/gcw/tasks/StartVulnerabilityTask.h"
 #include "server/zone/managers/gcw/tasks/EndVulnerabilityTask.h"
 #include "server/zone/managers/gcw/tasks/BaseDestructionTask.h"
@@ -469,6 +468,10 @@ void GCWManagerImplementation::updateWinningFaction() {
 }
 
 void GCWManagerImplementation::spawnGcwControlBanners() {
+<<<<<<< HEAD
+=======
+
+>>>>>>> 563b621610 ([added] GCW Banners to non-stronghold cities - Mantis #6879)
 	if (zone == nullptr) {
 		return;
 	}
