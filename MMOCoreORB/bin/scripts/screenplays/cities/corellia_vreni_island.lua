@@ -5,11 +5,21 @@ CorelliaVreniIslandScreenPlay = CityScreenPlay:new {
 
 	planet = "corellia",
 
+	patrolNpcs = {"businessman_patrol", "commoner_fat_patrol", "commoner_old_patrol", "commoner_patrol", "noble_patrol"},
+
 	patrolMobiles = {
-		--{patrolPoints, template, level, x, z, y, direction, cell, mood},
-		{"cll8_1", "cll8_binary_load_lifter", 1, -5696, 14.6, -6154.2, 75, 0, ""},
-		{"eg6_1", "eg6_power_droid", 60, -5690.7, 14.6, -6154.2, -87, 0, ""},
-		{"eg6_2", "eg6_power_droid" , 60, -5692.65, 14.6, -6151.28, 179.632, 0, ""},
+		--{patrolPoints, template, level, x, z, y, direction, cell, mood, combatPatrol},
+
+		--Droids
+		{"cll8_1", "cll8_binary_load_lifter", 1, -5696, 14.6, -6154.2, 75, 0, "", false},
+		{"eg6_1", "eg6_power_droid", 60, -5690.7, 14.6, -6154.2, -87, 0, "", false},
+		{"eg6_2", "eg6_power_droid" , 60, -5692.65, 14.6, -6151.28, 179.632, 0, "", false},
+
+		--NPCs
+		{"npc_1", "patrolNpc", 1, -5505, 23, -6118, 272, 0, "", false},
+		{"npc_2", "patrolNpc", 1, -5519, 23, -6224, 134, 0, "", false},
+		{"npc_3", "patrolNpc", 1, -5385, 24, -6239, 118, 0, "", false},
+		{"npc_4", "patrolNpc", 1, -5480, 23, -6133, 182, 0, "", false},
 	},
 
 	patrolPoints = {
@@ -17,6 +27,11 @@ CorelliaVreniIslandScreenPlay = CityScreenPlay:new {
 		cll8_1 ={{-5696, 14.6, -6154, 0, 1}, {-5693, 14.6, -6163, 0, 1}, {-5688, 14.6, -6180, 0, 1}, {-5673, 14.6, -6180, 0, 1}, {-5688, 14.6, -6180, 0, 1}},
 		eg6_1 = {{-5690, 14.6, -6154, 0, 1}, {-5686, 14.6, -6154, 0, 1}, {-5685, 14.6, -6166, 0, 1}},
 		eg6_2 = {{-5692, 14.6, -6151, 0, 1}, {-5693, 14.6, -6137, 0, 1}, {-5686, 14.6, -6142, 0, 1}},
+
+		npc_1 = {{-5505, 23, -6118, 0, 0}, {-5514, 23, -6107, 0, 0}, {-5552, 23, -6112, 0, 0}, {-5551, 23, -6123, 0, 0}},
+		npc_2 = {{-5519, 23, -6224, 0, 0}, {-5503, 23, -6224, 0, 0}, {-5490, 23, -6241, 0, 0}},
+		npc_3 = {{-5385, 24, -6239, 0, 0}, {-5366, 23, -6232, 0, 0}, {-5370, 23, -6239, 0, 0}, {-5365, 23, -6245, 0, 0}, {-5393, 23, -6240, 0, 0}},
+		npc_4 = {{-5480, 23, -6133, 0, 0}, {-5480, 23, -6181, 0, 0}, {-5469, 23, -6170, 0, 0}},
 	},
 
 	stationaryCommoners = {"commoner", "commoner_fat", "commoner_old"},
@@ -65,6 +80,16 @@ function CorelliaVreniIslandScreenPlay:spawnMobiles()
 
 	local pNpc = spawnMobile("corellia", "commoner_technician",60,7.1,1.0,19.3,137,2775411)
 	self:setMoodString(pNpc, "npc_use_terminal_high")
+	spawnMobile("corellia", "businessman",60,-5428.59,24.1812,-6228.31,140.458,0)
+	spawnMobile("corellia", "commoner",60,-5495.01,23.4,-6190.5,325.039,0)
+	spawnMobile("corellia", "commoner",60,-5504.22,23.4,-6211.56,1.34408,0)
+	spawnMobile("corellia", "commoner",60,-5488.87,23.8964,-6242.6,304.866,0)
+	spawnMobile("corellia", "commoner",60,-5551.88,23.4,-6221.48,124.882,0)
+	spawnMobile("corellia", "commoner",60,-5549.18,23.4,-6189.25,119.296,0)
+	spawnMobile("corellia", "commoner",60,-5571.88,23.4,-6129.85,97.3312,0)
+	spawnMobile("corellia", "commoner",60,-5708.22,14.6,-6157.68,63.8572,0)
+	spawnMobile("corellia", "commoner",60,-5686.69,14.6,-6148.05,214.943,0)
+	spawnMobile("corellia", "commoner",60,-5693.27,14.6,-6177.12,293.479,0)
 	spawnMobile("corellia", "bounty_hunter",300,24.9055,1.28309,5.31569,360.011,2775414)
 	spawnMobile("corellia", "corellia_times_investigator",300,8.4,1.0,10.8,-172,2775413)
 	spawnMobile("corellia", "chiss_female",300,8.2,1.0,8.7,7,2775413)
