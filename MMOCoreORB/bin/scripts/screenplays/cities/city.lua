@@ -6,6 +6,7 @@ CityScreenPlay = ScreenPlay:new {
 	planet = "",
 
 	gcwMobs = {},
+
 	combatPatrol = {},
 	patrolNpcs = {},
 	patrolMobiles = {},
