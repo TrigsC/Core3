@@ -5,15 +5,37 @@ CorelliaVreniIslandScreenPlay = CityScreenPlay:new {
 
 	planet = "corellia",
 
-	patrolNpcs = {"businessman_patrol", "commoner_fat_patrol", "commoner_old_patrol", "commoner_patrol", "noble_patrol"},
+	gcwMobs = {
+		{"rebel_specforce_pathfinder", -5538.4, 16.4902, -6054.7, 182.005, 0, "", true},
+		{"specforce_master_sergeant", -5533.2, 23.4, -6202.2, 46, 0, "", true},
+		{"specforce_technician", -5405, 25, -6220, 37, 0, "", true},
+		{"rebel_specforce_pathfinder", -5534.1, 23.4, -6217.9, 138.004, 0, "", true},
+		{"rebel_recruiter", 0, -5516.1, 23.4, -6204.0, 0, 0, "", true},
+		{"specforce_infiltrator", -5549.5, 23.4, -6202.1, 310.009, 0, "", true},
+		{"specforce_procurement_specialist", -5549, 23.4, -6217.8, -139, 0, "", true},
+		{"rebel_specforce_pathfinder", -5429.8, 24, -6218.9, 0, 0, "", true},
+		{"rebel_specforce_captain", -5411.4, 24.9599, -6219.3, 5.00012, 0, "", true},
+		{"specforce_marine", -5398, 24.2, -6242.9, 81, 0, "", true},
+		{"specforce_marine", -5443.6, 24, -6243, 282.008, 0, "", true},
+		{"specforce_marine", -5716.1, 14.6, -6153.1, 269.008, 0, "", true},
+		{"specforce_infiltrator", -5716.1, 14.6, -6147.5, 271.008, 0, "", true},
+		{"specforce_marine", -5664, 14.6, -6179.3, 94.0028, 0, "", true},
+		{"rebel_specforce_pathfinder", -5664, 14.7566, -6185.3, 94.0028, 0, "", true},
+		{"specforce_marine", -5290.0, 4.0, -6421.6, 0, 0, "", true},
+		{"specforce_marine", -5290.0, 4.0, -6432.9, 180, 0, "", true},
+		{"specforce_marine", -5149.3, 4.2, -6418.8, -90, 0, "", true},
+		{"specforce_marine", -5160.1, 4.0, -6413.2, 90, 0, "", true},
+	},
+
+	patrolNpcs = {"businessman_patrol", "commoner_fat_patrol", "commoner_old_patrol", "commoner_patrol", "noble_patrol", "scientist_patrol"},
 
 	patrolMobiles = {
 		--{patrolPoints, template, level, x, z, y, direction, cell, mood, combatPatrol},
 
 		--Droids
 		{"cll8_1", "cll8_binary_load_lifter", 1, -5696, 14.6, -6154.2, 75, 0, "", false},
-		{"eg6_1", "eg6_power_droid", 60, -5690.7, 14.6, -6154.2, -87, 0, "", false},
-		{"eg6_2", "eg6_power_droid" , 60, -5692.65, 14.6, -6151.28, 179.632, 0, "", false},
+		{"eg6_1", "eg6_power_droid", 1, -5690.7, 14.6, -6154.2, -87, 0, "", false},
+		{"eg6_2", "eg6_power_droid" , 1, -5692.6, 14.6, -6151.3, 179.6, 0, "", false},
 
 		--NPCs
 		{"npc_1", "patrolNpc", 1, -5505, 23, -6118, 272, 0, "", false},
@@ -23,15 +45,15 @@ CorelliaVreniIslandScreenPlay = CityScreenPlay:new {
 	},
 
 	patrolPoints = {
-		--table_name = {{x, z, y, cell, delayAtNextPoint}} 1 = no delay 0 = delay
-		cll8_1 ={{-5696, 14.6, -6154, 0, 1}, {-5693, 14.6, -6163, 0, 1}, {-5688, 14.6, -6180, 0, 1}, {-5673, 14.6, -6180, 0, 1}, {-5688, 14.6, -6180, 0, 1}},
-		eg6_1 = {{-5690, 14.6, -6154, 0, 1}, {-5686, 14.6, -6154, 0, 1}, {-5685, 14.6, -6166, 0, 1}},
-		eg6_2 = {{-5692, 14.6, -6151, 0, 1}, {-5693, 14.6, -6137, 0, 1}, {-5686, 14.6, -6142, 0, 1}},
+		--table_name = {{x, z, y, cell, delayAtNextPoint}}
+		cll8_1 ={{-5696, 14.6, -6154, 0, false}, {-5693, 14.6, -6163, 0, false}, {-5688, 14.6, -6180, 0, false}, {-5673, 14.6, -6180, 0, false}, {-5688, 14.6, -6180, 0, false}},
+		eg6_1 = {{-5690, 14.6, -6154, 0, false}, {-5686, 14.6, -6154, 0, false}, {-5685, 14.6, -6166, 0, false}},
+		eg6_2 = {{-5692, 14.6, -6151, 0, false}, {-5693, 14.6, -6137, 0, false}, {-5686, 14.6, -6142, 0, false}},
 
-		npc_1 = {{-5505, 23, -6118, 0, 0}, {-5514, 23, -6107, 0, 0}, {-5552, 23, -6112, 0, 0}, {-5551, 23, -6123, 0, 0}},
-		npc_2 = {{-5519, 23, -6224, 0, 0}, {-5503, 23, -6224, 0, 0}, {-5490, 23, -6241, 0, 0}},
-		npc_3 = {{-5385, 24, -6239, 0, 0}, {-5366, 23, -6232, 0, 0}, {-5370, 23, -6239, 0, 0}, {-5365, 23, -6245, 0, 0}, {-5393, 23, -6240, 0, 0}},
-		npc_4 = {{-5480, 23, -6133, 0, 0}, {-5480, 23, -6181, 0, 0}, {-5469, 23, -6170, 0, 0}},
+		npc_1 = {{-5505, 23, -6118, 0, true}, {-5514, 23, -6107, 0, true}, {-5552, 23, -6112, 0, true}, {-5551, 23, -6123, 0, true}},
+		npc_2 = {{-5519, 23, -6224, 0, true}, {-5503, 23, -6224, 0, true}, {-5490, 23, -6241, 0, true}},
+		npc_3 = {{-5385, 24, -6239, 0, true}, {-5366, 23, -6232, 0, true}, {-5370, 23, -6239, 0, true}, {-5365, 23, -6245, 0, true}, {-5393, 23, -6240, 0, true}},
+		npc_4 = {{-5480, 23, -6133, 0, true}, {-5480, 23, -6181, 0, true}, {-5469, 23, -6170, 0, true}},
 	},
 
 	stationaryCommoners = {"commoner", "commoner_fat", "commoner_old"},
