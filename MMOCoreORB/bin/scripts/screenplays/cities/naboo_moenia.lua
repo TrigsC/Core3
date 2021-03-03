@@ -1,4 +1,4 @@
-NabooMoeniaScreenPlay = ScreenPlay:new {
+NabooMoeniaScreenPlay = CityScreenPlay:new {
 	numberOfActs = 1,
 
 	screenplayName = "NabooMoeniaScreenPlay",
@@ -39,6 +39,17 @@ NabooMoeniaScreenPlay = ScreenPlay:new {
 		npc_2 = {{4825, 4, -4679, 0, true}, {4819, 4, -4658, 0, true}, {4831, 4, -4669, 0, true}, {4831, 4, -4649, 0, true}},
 		npc_3 = {{4852, 4, -4677, 0, true}, {4849, 4, -4711, 0, true}, {4840, 4, -4699, 0, true}, {4846, 4, -4672, 0, true}},
 	},
+
+	stationaryCommoners = {"commoner", "commoner_fat", "commoner_naboo", "commoner_old"},
+	stationaryNpcs = {"agriculturalist", "artisan", "bodyguard", "bothan_diplomat", "bounty_hunter", "businessman", "commoner_technician", "contractor", "entertainer", "explorer", "farmer", "farmer_rancher", "fringer",
+				"gambler", "info_broker", "medic", "mercenary", "miner", "naboo_nomad", "noble", "official", "patron_ishitib", "pilot", "rancher", "scientist", "slicer", "traveller"},
+
+	--{respawn, x, z, y, direction, cell, mood}
+	stationaryMobiles = {
+		{1, 4667.6, 3.8, -4785.3, -20, 0, ""},
+		{1, 4667.9, 3.8, -4783.4, 170, 0, ""},
+		{1, 4646.5, 3.2, -4796.9, -179, 0, "fishing"},
+	},
 }
 
 registerScreenPlay("NabooMoeniaScreenPlay", true)
@@ -47,7 +58,9 @@ function NabooMoeniaScreenPlay:start()
 	if (isZoneEnabled("naboo")) then
 		self:spawnMobiles()
 		self:spawnPatrolMobiles()
+		self:spawnStationaryMobiles()
 		self:spawnSceneObjects()
+		self:spawnGcwMobiles()
 	end
 end
 
@@ -112,23 +125,6 @@ function NabooMoeniaScreenPlay:spawnMobiles()
 	spawnMobile("naboo", "junk_lila", 0, 26, -0.9, 11.4, -128, 111)
 	spawnMobile("naboo", "junk_dealer", 0, -14.4, 1.1, 3.2, 122, 1717532)
 	spawnMobile("naboo", "junk_dealer", 0, 4810.44, 4.17, -4663.38, 112, 0)
-
-	--rebel 'stronghold' spawns
-	spawnMobile("naboo", "specforce_marine",300,4794.6,4.2,-4700,50,0)
-	spawnMobile("naboo", "specforce_marine",300,4799.2,4.2,-4693,-150,0)
-	spawnMobile("naboo", "specforce_infiltrator",300,4835.9,4.1,-4732.2,-20,0)
-	spawnMobile("naboo", "specforce_infiltrator",300,4841.1,4.1,-4730.3,-20,0)
-	spawnMobile("naboo", "rebel_specforce_pathfinder",300,4829.9,4.2,-4578.6,-13,0)
-	spawnMobile("naboo", "rebel_specforce_pathfinder",300,4832.0,4.2,-4572.0,80,0)
-	spawnMobile("naboo", "specforce_infiltrator",300,4864.0,3.8,-4788.6,160,0)
-	spawnMobile("naboo", "specforce_infiltrator",300,4858.2,3.8,-4790.8,160,0)
-	spawnMobile("naboo", "specforce_marine",300,4826.3,4.3,-4866.8,80,0)
-	spawnMobile("naboo", "specforce_marine",300,4825.2,4.3,-4861.2,80,0)
-	spawnMobile("naboo", "specforce_infiltrator",300,4804.7,4.3,-4844.9,-2,0)
-	spawnMobile("naboo", "specforce_infiltrator",300,4799.1,4.3,-4845.6,-12,0)
-	spawnMobile("naboo", "specforce_marine",300,4695.3,3.8,-4873.9,0,0)
-	spawnMobile("naboo", "specforce_marine",300,4695.7,3.8,-4913.5,180,0)
-	spawnMobile("naboo", "rebel_specforce_pathfinder",300,4707.1,3.8,-4894.6,90,0)
 
 	--Cantina
 	spawnMobile("naboo", "rebel_recruiter",0,-29,-0.89,-1.2,74,119)
