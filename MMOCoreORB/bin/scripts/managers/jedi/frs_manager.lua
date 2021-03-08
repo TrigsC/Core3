@@ -30,6 +30,8 @@ missedVotePenalty = 100 -- FRS XP
 --shareXPOnKill = true
 --SWGIntended: Give full FRS XP
 shareXPOnKill = false
+-- Restrict players from voting for and challenging other characters on their account
+sameAccountEnclaveRestrictions = 1
 
 -- { rank, skillName, requiredExperience, playerCap, robe }
 lightRankingData = {
