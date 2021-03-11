@@ -235,5 +235,8 @@ function CityScreenPlay:spawnStationaryMobile(num)
 		if mood ~= "" then
 			self:setMoodString(pMobile, mood)
 		end
+
+		CreatureObject(pMobile):setPvpStatusBitmask(0)
+
 	end
 end

@@ -124,6 +124,82 @@ CorelliaKorVellaScreenPlay = CityScreenPlay:new {
 		cll8_3 = {{-3038, 31, 2988, 0, 1}, {-3021, 31, 2908, 0, 1}, {-3038, 31, 2988, 0, 1}, {-3054, 31, 2985, 0, 0}, {-3091, 31, 2975, 0, 1}},
 		eg6_1 = {{-3766, 86, 3180, 0, 1}, {-3770, 86, 3192, 0, 1}, {-3755, 86, 3220, 0, 1}, {-3745, 86, 3198, 0, 1}},
 	},
+
+	stationaryCommoners = {"commoner", "commoner_fat", "commoner_old"},
+	stationaryNpcs = {"artisan", "bodyguard", "bothan_diplomat", "bounty_hunter", "businessman", "commoner_technician", "contractor", "entertainer", "explorer", "farmer", "farmer_rancher", "fringer", "gambler", "info_broker", "medic", "mercenary", "miner", "noble", "official", "pilot", "rancher", "scientist", "slicer"},
+
+	--{respawn, x, z, y, direction, cell, mood}
+	stationaryMobiles = {
+		{1, -3587.81, 86, 3134.7, 0, 0, ""},
+		{1, -3162.17, 31, 2902.28, 0, 0, ""},
+		{1, -3088.9, 31, 2902.08, 0, 0, ""},
+		{1, -3557.49, 86, 3158.11, 180.005, 0, ""},
+		{1, -3459.55, 78, 3226.02, 180, 0, ""},
+		{1, -3591.74, 86, 3180.01, 180, 0, ""},
+		{1, -3159.35, 31, 2813.02, 0, 0, ""},
+		{1, -3152.32, 31, 2971.71, 0, 0, ""},
+		{1, -3522.13, 70, 3234.57, 298, 0, ""},
+		{1, -3509.45, 78, 3148.97, 307, 0, ""},
+		{1, -3447.57, 78, 3219.08, 209, 0, ""},
+		{1, -3455.84, 78, 3343.36, 116, 0, ""},
+		{1, -3427.62, 86, 3029.21, 95, 0, ""},
+		{1, -3423.54, 86, 3043.61, 131, 0, "conversation"},
+		{1, -3403.44, 86, 2997.65, 182, 0, ""},
+		{1, -3403.21, 86, 3111.2, 47, 0, "conversation"},
+		{1, -3402.2, 86, 3111.9, 225, 0, "conversation"},
+		{1, -3459.9, 86, 3156.7, 255, 0, "conversation"},
+		{1, -3422, 86, 3042, 318, 0, "conversation"},
+		{1, -3458.31, 78, 3027.47, 275, 0, ""},
+		{1, -3461.07, 86, 3156, 54, 0, "conversation"},
+		{1, -3421.3, 86, 3104.47, 296, 0, ""},
+		{1,-3361.13,86,3217.26,124.012,0, ""},
+		{1,-3324.59,86,3261.86,293.486,0, ""},
+		{1,-3322.1,86,3230.47,113.222,0, ""},
+		{1,-3342.65,86,3268.3,214.421,0, ""},
+		{1,-3365.89,86,3284.68,46.8022,0, ""},
+		{1,-3374.97,86,3265.02,47.337,0, ""},
+		{1, -3332.16,86,3307.2,264.653,0, ""},
+		{1,-3322.3,86,3283.63,275.608,0, ""},
+		{1,-3378.96,86,2985.53,285.729,0, ""},
+		{1,-3311.8,69.6204,2886.94,40.0687,0, ""},
+		{1,-3396.89,86,3131.64,45,0, "conversation"},
+		{1,-3395.09, 86, 3131.9, 231, 0, "conversation"},
+		{1,-3225.11,32.2567,2816.51,180,0, ""},
+		{1,-3276.7,86,3089.82,195.888,0, ""},
+		{1,-3256,86,3124.3,90.73,0, ""},
+		{1,-3272.53,86,3071.96, 315, 0, ""},
+		{1,-3177.4, 30, 2775.1, 285,0, ""},
+		{1, -3178.84, 31, 2775.92, 100, 0, ""},
+		{1,-3157.04,101,3077.75,219.742,0, ""},
+		{1,-3191.67,101,3052.4,294.559,0, ""},
+		{1,-3190.54,101,3073.46,88.2138,0, ""},
+		{1, -3185.75,101,3104.64,308.461,0, ""},
+		{1,-3153.75,101,3112.41,31.6067,0, ""},
+		{1,-3188.79,101,3156.71,306.911,0, ""},
+		{1,-3068.52,30.6373,2772.26,154.712,0, ""},
+		{1,-3028.15,29.9485,2793.83,126.824,0, ""},
+		{1,-3087.72,31,2984.93,5.4138,0, ""},
+		{1, -3172.38, 31, 2881.95, 180, 0, ""},
+		{1, -3101.09, 31, 2904.87, 0, 0, ""},
+		{1, -3713.14, 86, 3105.66, 0, 0, ""},
+		{1, -3610.27, 86, 3198.4, 0, 0, ""},
+		{1, -3163.27, 31, 2903.38, 135.0, 0, ""},
+		{1, -3159.35, 31, 2814.02, 180, 0, ""},
+		{1, -3713.14, 86, 3106.66, 180.0, 0, ""},
+		{1, -3408.26, 86, 3048.35, 0, 0, ""},
+		{1, -3090, 31, 2903.18, 135.0, 0, ""},
+		{1, -3520.73, 78, 3126.57, 180, 0, ""},
+		{1, -3162.17, 31, 2903.38, 180, 0, ""},
+		{1, -3163.27, 31, 2902.28, 45, 0, ""},
+		{1, -3610.27, 86, 3199.4, 180, 0, ""},
+		{1, -3459.55, 78, 3225.02, 0, 0, ""},
+		{1, -3095.48, 31, 2971.63, 0, 0, ""},
+		{1, -3384.54, 86, 3008.15, 180, 0, ""},
+		{1, -3450.64, 78, 3030.31, 0, 0, ""},
+		{1, -3384.54, 86, 3007.15, 0, 0, ""},
+		{1, -3152.32, 31, 2972.71, 180, 0, ""},
+		{1, -3088.9, 31, 2903.18, 180, 0, ""},
+	},
 }
 
 registerScreenPlay("CorelliaKorVellaScreenPlay", true)
@@ -134,6 +210,7 @@ function CorelliaKorVellaScreenPlay:start()
 		self:spawnSceneObjects()
 		self:spawnGcwMobiles()
 		self:spawnPatrolMobiles()
+		self:spawnStationaryMobiles()
 	end
 end
 
@@ -182,92 +259,9 @@ function CorelliaKorVellaScreenPlay:spawnMobiles()
 	spawnMobile(self.planet, "junk_dealer", 10, -3130.41, 31, 2973.96, 0, 0)
 
 	--commoners
-	spawnMobile(self.planet, "bodyguard", 300, -3587.81, 86, 3134.7, 0, 0)
-	spawnMobile(self.planet, "bodyguard", 300, -3162.17, 31, 2902.28, 0, 0)
-	spawnMobile(self.planet, "info_broker", 60, -3088.9, 31, 2902.08, 0, 0)
-	pNpc = spawnMobile(self.planet, "info_broker", 60, -3557.49, 86, 3158.11, 180.005, 0)
-	self:setMoodString(pNpc, "conversation")
-	spawnMobile(self.planet, "brawler", 60, -3459.55, 78, 3226.02, 180, 0)
-	spawnMobile(self.planet, "businessman", 60, -3591.74, 86, 3180.01, 180, 0)
-	spawnMobile(self.planet, "businessman", 60, -3159.35, 31, 2813.02, 0, 0)
-	spawnMobile(self.planet, "businessman", 60, -3152.32, 31, 2971.71, 0, 0)
-	spawnMobile(self.planet, "commoner", 60, -3522.13, 70, 3234.57, 298, 0)
-	spawnMobile(self.planet, "commoner", 60, -3572.52, 70, 3208.39, 214, 0)
-	spawnMobile(self.planet, "commoner", 60, -3509.45, 78, 3148.97, 307, 0)
-	spawnMobile(self.planet, "commoner", 60, -3447.57, 78, 3219.08, 209, 0)
-	spawnMobile(self.planet, "commoner", 60, -3455.84, 78, 3343.36, 116, 0)
-	spawnMobile(self.planet, "commoner", 60, -3427.62, 86, 3029.21, 72, 0)
-	spawnMobile(self.planet, "commoner", 60, -3423.54, 86, 3043.61, 131, 0)
-	spawnMobile(self.planet, "commoner", 60, -3403.44, 86, 2997.65, 182, 0)
-	spawnMobile(self.planet, "commoner", 60, -3403.21, 86, 3111.2, 47, 0)
-	spawnMobile(self.planet, "commoner", 60, -3408.19, 86, 3125.55, 199, 0)
-	spawnMobile(self.planet, "commoner", 60, -3426.15, 86, 3134.26, 343, 0)
-	spawnMobile(self.planet, "commoner", 60, -3444.77, 86, 3143.75, 343, 0)
-	spawnMobile(self.planet, "commoner", 60, -3435.7, 86, 3119.29, 67, 0)
-	spawnMobile(self.planet, "commoner", 60, -3416.7, 86, 3033.89, 318, 0)
-	spawnMobile(self.planet, "commoner", 60, -3458.31, 78, 3027.47, 275, 0)
-	spawnMobile(self.planet, "commoner", 60, -3461.07, 86, 3156, 54, 0)
-	spawnMobile(self.planet, "commoner", 60, -3421.3, 86, 3104.47, 296, 0)
-	spawnMobile(self.planet, "commoner", 1,-3361.13,86,3217.26,124.012,0)
-	spawnMobile(self.planet, "commoner", 1,-3324.59,86,3261.86,293.486,0)
-	spawnMobile(self.planet, "commoner", 1,-3322.1,86,3230.47,113.222,0)
-	spawnMobile(self.planet, "commoner", 1,-3342.65,86,3268.3,214.421,0)
-	spawnMobile(self.planet, "commoner", 1,-3365.89,86,3284.68,46.8022,0)
-	spawnMobile(self.planet, "commoner", 1,-3374.97,86,3265.02,47.337,0)
-	spawnMobile(self.planet, "commoner", 1,-3351.81,86,3303.25,24.0851,0)
-	spawnMobile(self.planet, "commoner", 1,-3332.16,86,3307.2,264.653,0)
-	spawnMobile(self.planet, "commoner", 1,-3322.3,86,3283.63,275.608,0)
-	spawnMobile(self.planet, "commoner", 1,-3393.47,86,3007.94,286.244,0)
-	spawnMobile(self.planet, "commoner", 1,-3378.96,86,2985.53,285.729,0)
-	spawnMobile(self.planet, "commoner", 1,-3384.17,86,2958.24,11.3093,0)
-	spawnMobile(self.planet, "commoner", 1,-3311.8,69.6204,2886.94,40.0687,0)
-	spawnMobile(self.planet, "commoner", 1,-3378.65,86,3173.54,240.512,0)
-	spawnMobile(self.planet, "commoner", 1,-3396.89,86,3131.64,135.762,0)
-	spawnMobile(self.planet, "commoner", 1,-3391.66,86,3140.05,231.255,0)
-	spawnMobile(self.planet, "commoner", 1,-3296.84,66.0938,2877.86,186.227,0)
-	spawnMobile(self.planet, "commoner", 1,-3225.11,32.2567,2816.51,354.534,0)
-	spawnMobile(self.planet, "commoner", 1,-3276.7,86,3089.82,195.888,0)
-	spawnMobile(self.planet, "commoner", 1,-3256,86,3124.3,90.73,0)
-	spawnMobile(self.planet, "commoner", 1,-3272.53,86,3071.96,247.995,0)
-	spawnMobile(self.planet, "commoner", 1,-3199.88,30.6149,2786.24,349.225,0)
-	spawnMobile(self.planet, "commoner", 1,-3160.26,30.6615,2762.28,0.966738,0)
-	spawnMobile(self.planet, "commoner", 1,-3178.84,31,2775.92,288.531,0)
-	spawnMobile(self.planet, "commoner", 1,-3115.47,31,2800.28,30.7435,0)
-	spawnMobile(self.planet, "commoner", 1,-3112.88,31,2984.36,125.035,0)
-	spawnMobile(self.planet, "commoner", 1,-3131.04,31,2995.05,134.779,0)
-	spawnMobile(self.planet, "commoner", 1,-3157.04,101,3077.75,219.742,0)
-	spawnMobile(self.planet, "commoner", 1,-3191.67,101,3052.4,294.559,0)
-	spawnMobile(self.planet, "commoner", 1,-3190.54,101,3073.46,88.2138,0)
-	spawnMobile(self.planet, "commoner", 1,-3185.75,101,3104.64,308.461,0)
-	spawnMobile(self.planet, "commoner", 1,-3153.75,101,3112.41,31.6067,0)
-	spawnMobile(self.planet, "commoner", 1,-3188.79,101,3156.71,306.911,0)
-	spawnMobile(self.planet, "commoner", 1,-3068.52,30.6373,2772.26,154.712,0)
-	spawnMobile(self.planet, "commoner", 1,-3028.15,29.9485,2793.83,126.824,0)
-	spawnMobile(self.planet, "commoner", 1,-3066.9,31,2925.13,132.488,0)
-	spawnMobile(self.planet, "commoner", 1,-3087.72,31,2984.93,5.4138,0)
-	spawnMobile(self.planet, "entertainer", 60, -3602.67, 86, 3221.17, 0, 0)
 	spawnMobile(self.planet, "entertainer", 60, -16.9034, 1.6, 11.8646, 180, 3005672)
+	spawnMobile(self.planet, "entertainer", 60, -3602.67, 86, 3221.17, 0, 0)
 	spawnMobile(self.planet, "entertainer", 60, -3100.88, 31, 2889.15, 0, 0)
-	spawnMobile(self.planet, "businessman", 60, -3172.38, 31, 2881.95, 180, 0)
-	spawnMobile(self.planet, "bounty_hunter", 60, -3101.09, 31, 2904.87, 0, 0)
-	spawnMobile(self.planet, "farmer", 60, -3713.14, 86, 3105.66, 0, 0)
-	spawnMobile(self.planet, "farmer", 60, -3610.27, 86, 3198.4, 0, 0)
-	spawnMobile(self.planet, "farmer", 60, -3163.27, 31, 2903.38, 135.0, 0)
-	spawnMobile(self.planet, "farmer_rancher", 60, -3159.35, 31, 2814.02, 180, 0)
-	spawnMobile(self.planet, "fringer", 300, -3713.14, 86, 3106.66, 180.0, 0)
-	spawnMobile(self.planet, "gambler", 60, -3408.26, 86, 3048.35, 0, 0)
-	spawnMobile(self.planet, "contractor", 60, -3090, 31, 2903.18, 135.0, 0)
-	spawnMobile(self.planet, "mercenary", 60, -3520.73, 78, 3126.57, 180, 0)
-	spawnMobile(self.planet, "twilek_slave", 60, -3162.17, 31, 2903.38, 180, 0)
-	spawnMobile(self.planet, "entertainer", 60, -3163.27, 31, 2902.28, 45, 0)
-	spawnMobile(self.planet, "noble", 60, -3610.27, 86, 3199.4, 180, 0)
-	spawnMobile(self.planet, "noble", 60, -3459.55, 78, 3225.02, 0, 0)
-	spawnMobile(self.planet, "noble", 60, -3095.48, 31, 2971.63, 249, 0)
-	spawnMobile(self.planet, "pilot", 60, -3384.54, 86, 3008.15, 180, 0)
-	spawnMobile(self.planet, "slicer", 60, -3450.64, 78, 3030.31, 0, 0)
-	spawnMobile(self.planet, "slicer", 60, -3384.54, 86, 3007.15, 0, 0)
-	spawnMobile(self.planet, "slicer", 60, -3152.32, 31, 2972.71, 180, 0)
-	spawnMobile(self.planet, "mercenary", 60, -3088.9, 31, 2903.18, 180, 0)
 
 	--thugs
 	spawnMobile(self.planet, "ragtag_kook", 300, -3816.4, 86, 3114.2, 103, 0)

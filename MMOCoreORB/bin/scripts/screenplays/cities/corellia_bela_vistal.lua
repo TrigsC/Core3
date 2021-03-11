@@ -19,6 +19,21 @@ CorelliaBelaVistalScreenPlay = CityScreenPlay:new {
 		cll8_1 = {{6826, 315, -5807, 0, 1}, {6825, 315, -5725, 0, 1}, {6769, 315, -5725, 0, 1}, {6770, 315, -5736, 0, 1}, {6817, 315, -5735, 0, 1}}
 	},
 
+	stationaryCommoners = {"commoner", "commoner_fat", "commoner_old"},
+	stationaryNpcs = {"artisan", "bodyguard", "bothan_diplomat", "bounty_hunter", "businessman", "commoner_technician", "contractor", "entertainer", "explorer", "farmer", "farmer_rancher", "fringer", "gambler", "info_broker", "medic", "mercenary", "miner", "noble", "official", "pilot", "rancher", "scientist", "slicer"},
+
+	--{respawn, x, z, y, direction, cell, mood}
+	stationaryMobiles = {
+		{1, 6823.1, 315, -5610.5, 225, 0, "conversation"},
+		{1, 6821.55, 314.999, -5611.9, 50, 0, "conversation"},
+		{1, 6834.25, 315, -5577.61, 150, 0, ""},
+		{1, 6896.18, 330, -5577.91, 290, 0, ""},
+		{1, 6867.23, 315, -5758.29, 338, 0, ""},
+		{1, 6810.15, 315, -5699.05, 137, 0, ""},
+		{1, 6798.04, 315, -5731.94, 270, 0, ""},
+		{1, 6724.41, 330, -5909.35, 213, 0, ""},
+	},
+
 }
 
 registerScreenPlay("CorelliaBelaVistalScreenPlay", true)
@@ -27,6 +42,7 @@ function CorelliaBelaVistalScreenPlay:start()
 	if (isZoneEnabled(self.planet)) then
 		self:spawnMobiles()
 		self:spawnSceneObjects()
+		self:spawnStationaryMobiles()
 		self:spawnPatrolMobiles()
 	end
 end
@@ -78,46 +94,11 @@ function CorelliaBelaVistalScreenPlay:spawnMobiles()
 	self:setMoodString(pNpc, "neutral")
 
 	--Outside
-	spawnMobile("corellia", "commoner", 60, 6832.06, 315, -5606.82, 252.9, 0)
-	spawnMobile("corellia", "commoner", 60, 6847.34, 315, -5617.89, 54.6527, 0)
-	spawnMobile("corellia", "commoner", 60, 6829.04, 315, -5626.01, 119.354, 0)
-	spawnMobile("corellia", "commoner", 60, 6821.55, 314.999, -5611.9, 303.021, 0)
-	spawnMobile("corellia", "commoner", 60, 6834.25, 315, -5577.61, 150.226, 0)
-	spawnMobile("corellia", "commoner", 60, 6846.25, 315, -5588.75, 54.8409, 0)
-	spawnMobile("corellia", "commoner", 60, 6896.18, 330, -5577.91, 290.907, 0)
-	spawnMobile("corellia", "commoner", 60, 6867.23, 315, -5758.29, 338.874, 0)
-	spawnMobile("corellia", "commoner", 60, 6829.48, 315, -5813.46, 319.91, 0)
-	spawnMobile("corellia", "commoner", 60, 6808.93, 315, -5779.16, 282.269, 0)
-	spawnMobile("corellia", "commoner", 60, 6829.32, 315, -5745.5, 171.619, 0)
-	spawnMobile("corellia", "commoner", 60, 6810.15, 315, -5699.05, 137.601, 0)
-	spawnMobile("corellia", "commoner", 60, 6798.04, 315, -5731.94, 209.929, 0)
-	spawnMobile("corellia", "commoner", 60, 6760.75, 315, -5733.05, 101.495, 0)
-	spawnMobile("corellia", "commoner", 60, 6761.43, 315, -5695.98, 3.51103, 0)
-	spawnMobile("corellia", "commoner", 60, 6755.2, 314.926, -5625.98, 139.418, 0)
-	spawnMobile("corellia", "commoner", 60, 6740.98, 315, -5674.9, 168.837, 0)
 	spawnMobile("corellia", "criminal", 300, 6871.34, 315, -5753.42, 355.947, 0)
 	spawnMobile("corellia", "corsec_trooper", 360, 6847.6, 315, -5838.6, -1, 0)
 	spawnMobile("corellia", "corsec_trooper", 360, 6852.5, 315, -5838.8, -24, 0)
 	spawnMobile("corellia", "corsec_trooper", 360, 6855.7, 315, -5837.1, -34, 0)
 	spawnMobile("corellia", "corsec_trooper", 360, 6860.3, 315, -5833.9, -57, 0)
-	spawnMobile("corellia", "dark_trooper", 400, 6749.3, 315, -5684, 231.007, 0)
-	spawnMobile("corellia", "dark_trooper", 400, 6718.1, 328.537, -5869.6, 186.005, 0)
-	spawnMobile("corellia", "imperial_noncom", 400, 6663.8, 330, -5913.3, 134.004, 0)
-	spawnMobile("corellia", "scout_trooper", 400, 6832.36, 314.758, -5811.93, 312.353, 0)
-	spawnMobile("corellia", "storm_commando", 400, 6752.1, 315, -5823.5, 273.008, 0)
-	spawnMobile("corellia", "storm_commando", 400, 6648.54, 330, -5939.32, 280.874, 0)
-	spawnMobile("corellia", "stormtrooper", 400, 6852.9, 315, -5826.9, 140.004, 0)
-	spawnMobile("corellia", "stormtrooper", 400, 6837.4, 315, -5774, 260.008, 0)
-	spawnMobile("corellia", "stormtrooper", 400, 6819.9, 315, -5720.1, 220.006, 0)
-	spawnMobile("corellia", "stormtrooper", 400, 6748.9, 315, -5665.2, 279.008, 0)
-	spawnMobile("corellia", "stormtrooper", 400, 6855, 315, -5609.3, 280.008, 0)
-	spawnMobile("corellia", "stormtrooper", 400, 6685.7, 330, -5943.3, 222.007, 0)
-	spawnMobile("corellia", "stormtrooper", 400, 6708, 328.7, -5869.7, 166.005, 0)
-	spawnMobile("corellia", "stormtrooper_rifleman", 400, 6845.3, 315, -5826.8, 130.004, 0)
-	spawnMobile("corellia", "noble",60, 6724.41, 330, -5909.35, 213.723, 0)
-	spawnMobile("corellia", "stormtrooper_bombardier", 360, 6646.02, 330, -5931.59, 357.677, 0)
-	spawnMobile("corellia", "stormtrooper_bombardier", 360, 6644.26, 330, -5937.08, 5.98245, 0)
-	spawnMobile("corellia", "stormtrooper_bombardier", 360, 6649.56, 330, -5935.6, 128.564, 0)
 	spawnMobile("corellia", "imperial_recruiter", 60,6718.8,315.0,-5804.6,-174,0)
 
 	--Misc
