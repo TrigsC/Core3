@@ -18,6 +18,23 @@ DantooineImperialOutpostScreenPlay = CityScreenPlay:new {
 		r4_1 = {{-4227, 3, -2366, 0, 1}, {-4212, 3, -2356, 0, 1}, {-4212, 3, -2349, 0, 1}, {-4204, 3, -2366, 0, 1}},
 		r5_1 = {{-4228, 3, -2367, 0, 1}, {-4212, 3, -2372, 0, 1}, {-4242, 3, -2352, 0, 1}},
 	},
+
+	stationaryCommoners = {"commoner", "commoner_fat", "commoner_old"},
+	stationaryNpcs = {"artisan", "bodyguard", "bothan_diplomat", "bounty_hunter", "businessman", "commoner_technician", "contractor", "entertainer", "explorer", "farmer", "farmer_rancher", "fringer", "gambler", "medic", "mercenary", "miner", "noble", "pilot", "rancher", "scientist", "slicer"},
+
+	--{respawn, x, z, y, direction, cell, mood}
+	stationaryMobiles = {
+		{1, -4203, 3, -2357, 230, 0, ""},
+		{1, -4214.17, 3, -2394.5, 357.839, 0, ""},
+		{1, -4196.58, 3, -2425.71, 32.429, 0, ""},
+		{1, -4234.61, 3, -2380.77, 150.893, 0, "conversation"},
+		{1, -4244.41, 3, -2373.1, 149.71, 0, ""},
+		{1, -4258.64, 3, -2425.92, 281.664, 0, ""},
+		{1, -4229.36, 3, -2423.44, 122.777, 0, ""},
+		{1, -4186.81, 3, -2388.66, 141.892, 0, ""},
+		{1, -4261, 3, -2384, 200, 0, ""},
+		{1, -4223.6, 3, -2409.3, 345, 0, "npc_use_terminal_high"},
+	},
 }
 
 registerScreenPlay("DantooineImperialOutpostScreenPlay", true)
@@ -26,6 +43,7 @@ function DantooineImperialOutpostScreenPlay:start()
 	if (isZoneEnabled("dantooine")) then
 		self:spawnMobiles()
 		self:spawnPatrolMobiles()
+		self:spawnStationaryMobiles()
 	end
 end
 
@@ -62,24 +80,8 @@ function DantooineImperialOutpostScreenPlay:spawnMobiles()
 	spawnMobile("dantooine", "imperial_private", 450, -4241, 3, -2403, 300, 0)
 	spawnMobile("dantooine", "imperial_private", 450, -4198, 3, -2404, 240, 0)
 	spawnMobile("dantooine", "bek_rabor", 60, -4223.5, 3, -2386, 115, 0)
-	spawnMobile("dantooine", "businessman", 60, -4203, 3, -2357, 230, 0)
-	spawnMobile("dantooine", "businessman", 60, -4214.17, 3, -2394.5, 357.839, 0)
-	spawnMobile("dantooine", "businessman", 60, -4196.58, 3, -2425.71, 32.429, 0)
-	spawnMobile("dantooine", "commoner", 60, -4234.61, 3, -2380.77, 150.893, 0)
-	spawnMobile("dantooine", "commoner", 60, -4244.41, 3, -2373.1, 149.71, 0)
-	spawnMobile("dantooine", "commoner_tatooine", 60, -4272, 3, -2391, 117, 0)
-	spawnMobile("dantooine", "commoner", 60, -4258.64, 3, -2425.92, 281.664, 0)
-	spawnMobile("dantooine", "commoner", 60, -4229.36, 3, -2423.44, 122.777, 0)
-	spawnMobile("dantooine", "commoner", 60, -4210.71, 3, -2411.83, 81.6274, 0)
-	spawnMobile("dantooine", "commoner", 60, -4221.08, 3, -2370.49, 124.39, 0)
-	spawnMobile("dantooine", "commoner_naboo", 60, -4182.56, 3, -2422.72, 157.31, 0)
-	spawnMobile("dantooine", "commoner", 60, -4186.81, 3, -2388.66, 141.892, 0)
 	spawnMobile("dantooine", "juntah_herm", 60, -4222, 3, -2386.5, 300, 0)
-	spawnMobile("dantooine", "noble", 60, -4261, 3, -2384, 200, 0)
 	spawnMobile("dantooine", "imperial_recruiter", 0, -4197, 3, -2411, 270, 0)
-
-	pNpc = spawnMobile("dantooine", "noble", 60,-4223.6,3,-2409.3,345,0)
-	self:setMoodString(pNpc, "npc_use_terminal_high")
 	pNpc = spawnMobile("dantooine", "insurgent",60,0,0,-5.7,0,1365878)
 	self:setMoodString(pNpc, "npc_imperial")
 end
