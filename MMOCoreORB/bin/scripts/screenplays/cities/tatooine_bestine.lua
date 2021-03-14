@@ -20,6 +20,20 @@ TatooineBestineScreenPlay = CityScreenPlay:new {
 		r3_1 = {{-3.4, -4.0, -4.8, 1528401, 1}, {-4.1, -4.0, -9.7, 1528401, 1}, {-0.6, -4.0, -6.9, 1528401, 0}, {-0.6, -4.0, 0.6, 1528401, 1}},
 		r4_1 = {{-1068, 12, -3600, 0, 1}, {-1074.7, 12, -3608.6, 0, 0}, {-1035.7, 12, -3643.1, 0, 1}, {-1074.7, 12, -3608.6, 0, 1}, {-1086.9, 12, -3600.3, 0, 0}, {-1089.4, 12, -3585.6, 0, 1}, {-1086.9, 12, -3600.3, 0, 1}},
 	},
+
+	stationaryCommoners = {"commoner", "commoner_fat", "commoner_old", "commoner_tatooine"},
+	stationaryNpcs = {"artisan", "bodyguard", "bothan_diplomat", "bounty_hunter", "businessman", "commoner_technician", "contractor", "criminal", "entertainer", "explorer", "farmer", "farmer_rancher", "fringer",
+			"gambler", "info_broker", "medic", "mercenary", "miner", "noble", "official", "pilot", "rancher", "scavenger", "scientist", "slicer"},
+
+	--{respawn, x, z, y, direction, cell, mood}
+	stationaryMobiles = {
+		{1, -1268.02, 12, -3531.37, 119, 0, ""}, {1, -987.119, 12, -3729.33, 40, 0, ""}, {1, -1145.13, 12, -3507.53, 221, 0, ""}, {1, -1358.9, 12, -3504.1, 76, 0, ""},
+		{1, -1066.46, 12, -3668.09, 306, 0, ""}, {1, -1162.65, 12, -3646.5, 113, 0, ""}, {1, -1464.81, 12, -3561.05, 198, 0, ""}, {1, -1142.23, 12, -3672.51, 283, 0, ""},
+		{1, -1080.55, 12, -3696.41, 132, 0, ""}, {1, -1157.39, 12, -3666.66, 339, 0, ""}, {1, -1429, 12, -3628.03, 236, 0, ""}, {1, -1404.76, 12, -3636.5, 34, 0, ""},
+		{1, -1033.88, 12, -3644.68, 209, 0, ""}, {1, -1010.28, 12, -3728.59, 85, 0, ""}, {1, -1257.34, 12, -3539.31, 207, 0, ""}, {1, -983.47, 10, -3538.5, 142, 0, ""},
+		{1, -1250.18, 12, -3545.35, 279, 0, ""}, {1, -1023.25, 12, -3746.26, 261, 0, ""}, {1, -1093.32, 12, -3509.11,  63, 0, ""}, {1, -1099.89, 12, -3506.87, -175, 0, ""},
+		{1, -1271.82, 12, -3601.08, 5, 0, ""}, {1, -1012.31, 12, -3748.5, 10, 0, ""}
+	},
 }
 
 registerScreenPlay("TatooineBestineScreenPlay", true)
@@ -28,6 +42,7 @@ function TatooineBestineScreenPlay:start()
 	if (isZoneEnabled("tatooine")) then
 		self:spawnMobiles()
 		self:spawnPatrolMobiles()
+		self:spawnStationaryMobiles()
 		self:spawnSceneObjects()
 	end
 end
@@ -191,46 +206,6 @@ function TatooineBestineScreenPlay:spawnMobiles()
 	self:setMoodString(pNpc, "angry")
 
 	--Outside
-	spawnMobile("tatooine", "businessman",60,-1268.02,12,-3531.37,119.711,0)
-	spawnMobile("tatooine", "businessman",60,-987.119,12,-3729.33,40.7756,0)
-	spawnMobile("tatooine", "commoner_fat",60,-1213.04,12,-3629.94,40.7191,0)
-	spawnMobile("tatooine", "commoner_fat",60,-1279.47,12,-3584.64,352.018,0)
-	spawnMobile("tatooine", "commoner_fat",60,-1145.13,12,-3507.53,221.73,0)
-	spawnMobile("tatooine", "commoner_fat",60,-1358.9,12,-3504.1,76.9298,0)
-	spawnMobile("tatooine", "commoner_fat",60,-1066.46,12,-3668.09,306.973,0)
-	spawnMobile("tatooine", "commoner_naboo",60,-1162.65,12,-3646.5,113.039,0)
-	spawnMobile("tatooine", "commoner_naboo",60,-1311.62,12,-3674.36,26.9034,0)
-	spawnMobile("tatooine", "commoner_naboo",60,-1464.81,12,-3561.05,198.861,0)
-	spawnMobile("tatooine", "commoner_naboo",60,-1142.23,12,-3672.51,283.648,0)
-	spawnMobile("tatooine", "commoner_naboo",60,-1076.36,12,-3657.52,310.468,0)
-	spawnMobile("tatooine", "commoner_naboo",60,-1026.76,12,-3725.49,331.101,0)
-	spawnMobile("tatooine", "commoner_naboo",60,-1060.23,12,-3704.2,289.169,0)
-	spawnMobile("tatooine", "commoner_naboo",60,-1068.17,12,-3690.99,281.417,0)
-	spawnMobile("tatooine", "commoner_naboo",60,-1080.55,12,-3696.41,132.802,0)
-	spawnMobile("tatooine", "commoner_old",60,-1157.39,12,-3666.66,339.829,0)
-	spawnMobile("tatooine", "commoner_old",60,-1283.53,12,-3559.37,341.069,0)
-	spawnMobile("tatooine", "commoner_old",60,-1077.51,12,-3513.92,10.0573,0)
-	spawnMobile("tatooine", "commoner_tatooine",60,-1200.16,12,-3631.89,28.4494,0)
-	spawnMobile("tatooine", "commoner_tatooine",60,-1216.2,12,-3549.61,41.2597,0)
-	spawnMobile("tatooine", "commoner_tatooine",60,-1347.58,12,-3695.99,31.1935,0)
-	spawnMobile("tatooine", "commoner_tatooine",60,-1291.57,12,-3618.78,244.46,0)
-	spawnMobile("tatooine", "commoner_tatooine",60,-1429,12,-3628.03,236.879,0)
-	spawnMobile("tatooine", "commoner_tatooine",60,-1404.76,12,-3636.5,34.8111,0)
-	spawnMobile("tatooine", "commoner_tatooine",60,-1320.46,12,-3633.41,186.254,0)
-	spawnMobile("tatooine", "commoner_tatooine",60,-1226.87,12,-3628.59,257.373,0)
-	spawnMobile("tatooine", "commoner_tatooine",60,-1047.35,12,-3665.81,279.108,0)
-	spawnMobile("tatooine", "commoner_tatooine",60,-1039.09,12,-3723.55,303.987,0)
-	spawnMobile("tatooine", "commoner_tatooine",60,-1041.87,12,-3711.58,273.462,0)
-	spawnMobile("tatooine", "commoner_tatooine",60,-1033.88,12,-3644.68,209.933,0)
-	spawnMobile("tatooine", "commoner_tatooine",60,-1010.28,12,-3728.59,85.9413,0)
-	spawnMobile("tatooine", "criminal",300,-1257.34,12,-3539.31,207.196,0)
-	spawnMobile("tatooine", "criminal",300,-983.47,10,-3538.5,142.826,0)
-	spawnMobile("tatooine", "informant_npc_lvl_1",0,-1449,12,-3558,270,0)
-	spawnMobile("tatooine", "informant_npc_lvl_1",0,-1450,12,-3566,270,0)
-	spawnMobile("tatooine", "informant_npc_lvl_1",0,-1332,12,-3700,0,0)
-	spawnMobile("tatooine", "informant_npc_lvl_1",0,-1053,12,-3726,90,0)
-	spawnMobile("tatooine", "informant_npc_lvl_1",0,-1023,12,-3677,225,0)
-	spawnMobile("tatooine", "informant_npc_lvl_1",0,-1220,12,-3560,45,0)
 	spawnMobile("tatooine", "junk_dealer", 0, -1026.22, 10, -3559.1, 8, 0)
 	pNpc = spawnMobile("tatooine", "junk_dealer", 0, -1136.25, 12, -3683.56, 40, 0)
 	if pNpc ~= nil then
@@ -241,19 +216,15 @@ function TatooineBestineScreenPlay:spawnMobiles()
 		AiAgent(pNpc):setConvoTemplate("junkDealerFineryConvoTemplate")
 	end
 	spawnMobile("tatooine", "junk_dealer", 0, -1392, 18, -3847.9, 8, 0)
-
-	spawnMobile("tatooine", "noble",60,-1250.18,12,-3545.35,279.206,0)
-	spawnMobile("tatooine", "noble",60,-1023.25,12,-3746.26,261.847,0)
+	spawnMobile("tatooine", "informant_npc_lvl_1",0,-1449,12,-3558,270,0)
+	spawnMobile("tatooine", "informant_npc_lvl_1",0,-1450,12,-3566,270,0)
+	spawnMobile("tatooine", "informant_npc_lvl_1",0,-1332,12,-3700,0,0)
+	spawnMobile("tatooine", "informant_npc_lvl_1",0,-1053,12,-3726,90,0)
+	spawnMobile("tatooine", "informant_npc_lvl_1",0,-1023,12,-3677,225,0)
+	spawnMobile("tatooine", "informant_npc_lvl_1",0,-1220,12,-3560,45,0)
 	spawnMobile("tatooine", "gerak_vurtimis",60,-1252.5,12,-3617.35,278.1,0)
 	spawnMobile("tatooine", "gert_talnin",60,-1287.3,12,-3587.16,169.676,0)
 	spawnMobile("tatooine", "gunham",60,-1125.07,12.1959,-3622.83,83.2544,0)
-
-	--behind guild hall by shuttle
-	spawnMobile("tatooine", "commoner_tatooine",60,-1093.32,12,-3509.11, 63,0)
-	spawnMobile("tatooine", "commoner_tatooine",60,-1099.89,12,-3506.87,-175,0)
-
-	spawnMobile("tatooine", "scientist",60,-1271.82,12,-3601.08,5.92405,0)
-	spawnMobile("tatooine", "scientist",60,-1012.31,12,-3748.5,10.8572,0)
 	spawnMobile("tatooine", "sol_windtide",60,-1203.12,12,-3612.74,236.494,0)
 	spawnMobile("tatooine", "trainer_architect",0,-1255,12,-3567,-47,0)
 	spawnMobile("tatooine", "trainer_artisan",0,-1266,12,-3559,227,0)

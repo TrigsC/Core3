@@ -96,6 +96,23 @@ TatooineMosEnthaScreenPlay = CityScreenPlay:new {
 		eg6_1 = {{1332, 7, 3239, 0, 1}, {1329, 7, 3251, 0, 1}, {1276, 7, 3257, 0, 1}, {1457, 7, 3253, 0, 1}, {1329, 7, 3251, 0, 1}},
 		surgical_1 = {{-21.7, 0.26, -5.1, 1153586, 1}, {-11.3, 0.3, -6.5, 1153586, 0}, {-11.1, 0.3, 5.6, 1153586, 1}, {-21.5, 0.3, 6.3, 1153586, 1}},
 	},
+
+	stationaryCommoners = {"commoner", "commoner_fat", "commoner_old", "commoner_tatooine"},
+	stationaryNpcs = {"artisan", "bodyguard", "bothan_diplomat", "bounty_hunter", "businessman", "commoner_technician", "contractor", "criminal", "entertainer", "explorer", "farmer", "farmer_rancher", "fringer",
+			"gadget_specialist", "gambler", "info_broker", "medic", "mercenary", "miner", "noble", "official", "pilot", "rancher", "scavenger", "scientist", "slicer"},
+
+	--{respawn, x, z, y, direction, cell, mood}
+	stationaryMobiles = {
+		{1, 1356.66, 7, 3413.13, 0, 0, "conversation"}, {1, 1303.42, 7, 3113.38, 42, 0, ""}, {1, 1606.53, 7, 3357.48, 234, 0, ""}, {1, 1187.85, 7, 2996.69, 61, 0, ""},
+		{1, 1420.16, 7, 3089.99, 188, 0, ""}, {1, 60, 1723.47, 7, 3130.73, 52, 0, ""}, {1, 60, 1752.63, 7, 3163.33, 292, 0, ""}, {1, 60, 1448.18, 7, 2974.11, 175, 0, ""},
+		{1, 1326.19, 7, 3409.97, 355, 0, ""}, {1, 60, 1389.06, 7.5, 3162.26, 1, 0, ""}, {1, 60, 1450.08, 7, 3202.92, 223, 0, ""}, {1, 60, 1448.7, 7, 3183.32, 42, 0, ""},
+		{1, 60, 1495.58, 7, 3177.88, 278, 0, ""}, {1, 60, 1624.1, 7, 2929.75, 185, 0, ""}, {1, 60, 1647.95, 7, 2957, 97, 0, ""}, {1,  1,  1639.18,  7,  3070.97,  270,  0, ""},
+		{1, 60, 1288.86, 7, 3208.83, 321, 0, ""}, {1, 60, 1197.96, 7, 2937.67, 46, 0, ""}, {1, 60, 1378.9, 7, 3087.88, 171, 0, ""}, {1, 60, 1391.32, 7.5, 3202.54, 15, 0, ""},
+		{1, 60, 1302.38, 7, 3357.34, 93, 0, ""}, {1, 60, 1449.68, 7, 3159.65, 96, 0, ""}, {1, 60, 1449.89, 7, 3138, 131, 0, ""}, {1, 60, 1516.09, 7, 3164.73, 72, 0, ""},
+		{1, 60, 1619.54, 11, 3228.91, 330, 0, ""}, {1, 60, 1615.17, 7, 3313.63, 227, 0, ""}, {1, 1554.59, 15, 3500.85, 259, 0, ""}, {1, 1326.93, 7, 3163.39, 359, 0, "conversation"},
+		{1, 1326.44, 7, 3120.75, 180, 0, "conversation"}, {1, 60, 1326.44, 7, 3119.75, 0, 0, "conversation"}, {1, 60, 1191.8, 7, 2955.7, 360, 0, "conversation"}, {1, 1455.33, 7, 3335.99, 114, 0, ""},
+		{1,  1455.33,  7,  3335.99,  114,  0, "calm"}, {1, 1209.57, 7, 2923.54, 58, 0, ""},
+	},
 }
 
 registerScreenPlay("TatooineMosEnthaScreenPlay", true)
@@ -104,6 +121,7 @@ function TatooineMosEnthaScreenPlay:start()
 	if (isZoneEnabled(self.planet)) then
 		self:spawnMobiles()
 		self:spawnPatrolMobiles()
+		self:spawnStationaryMobiles()
 		self:spawnSceneObjects()
 		self:spawnGcwMobiles()
 	end
@@ -404,48 +422,6 @@ function TatooineMosEnthaScreenPlay:spawnMobiles()
 	spawnMobile(self.planet, "trainer_imagedesigner",0,-21.3524,2.12878,74.1456,164,1153604)
 
 	--Outside
-	pNpc = spawnMobile(self.planet, "agriculturalist",60,1356.66,7,3413.13,0,0)
-	self:setMoodString(pNpc, "conversation")
-	spawnMobile(self.planet, "businessman",60,1303.42,7,3113.38,42.5733,0)
-	spawnMobile(self.planet, "businessman",60,1606.53,7,3357.48,234.979,0)
-	spawnMobile(self.planet, "commoner",60,1187.85,7,2996.69,61.1413,0)
-	spawnMobile(self.planet, "commoner",60,1420.16,7,3089.99,188.698,0)
-	spawnMobile(self.planet, "commoner",60,1723.47,7,3130.73,52.9966,0)
-	spawnMobile(self.planet, "commoner",60,1752.63,7,3163.33,292.898,0)
-	spawnMobile(self.planet, "commoner_fat",60,1448.18,7,2974.11,175.638,0)
-	spawnMobile(self.planet, "commoner_fat",60,1326.19,7,3409.97,355.137,0)
-	spawnMobile(self.planet, "commoner_naboo",60,1294.55,7,3002.8,111.166,0)
-	spawnMobile(self.planet, "commoner_naboo",60,1389.06,7.5,3162.26,1.64759,0)
-	pNpc = spawnMobile(self.planet, "commoner_naboo",60,1328.4,7,3028.17,238.827,0)
-	self:setMoodString(pNpc, "conversation")
-	spawnMobile(self.planet, "commoner_naboo",60,1450.08,7,3202.92,223.221,0)
-	spawnMobile(self.planet, "commoner_naboo",60,1448.7,7,3183.32,42.471,0)
-	spawnMobile(self.planet, "commoner_naboo",60,1495.58,7,3177.88,278.103,0)
-	spawnMobile(self.planet, "commoner_naboo",60,1609.53,10.9973,3163.55,239.286,0)
-	spawnMobile(self.planet, "commoner_naboo",60,1636.62,7,3124.11,33.7288,0)
-	spawnMobile(self.planet, "commoner_naboo",60,1624.1,7,2929.75,185.957,0)
-	spawnMobile(self.planet, "commoner_naboo",60,1647.95,7,2957,97.7955,0)
-	spawnMobile(self.planet, "commoner_naboo",60,1639.18,7,3070.97,82.98,0)
-	spawnMobile(self.planet, "commoner_old",60,1184.74,7,3106.09,161.401,0)
-	spawnMobile(self.planet, "commoner_old",60,1288.86,7,3208.83,321.512,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1169.4,7,3063.85,171.962,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1197.96,7,2937.67,46.5906,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1312.96,7,3028.24,216.261,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1340.32,7,3068.23,51.271,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1378.9,7,3087.88,171.156,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1391.32,7.5,3202.54,15.2442,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1302.38,7,3357.34,93.6624,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1242.3,7,3321.72,32.6955,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1225.63,7,2970.92,264.35,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1449.68,7,3159.65,96.9033,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1449.89,7,3138,131.557,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1516.09,7,3164.73,72.0873,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1619.54,11,3228.91,330.791,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1615.17,7,3313.63,227.564,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1556.48,7,3324.92,237.451,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1583.89,7,3429.16,52.5515,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1554.59,15,3500.85,259.137,0)
-	spawnMobile(self.planet, "commoner_tatooine",60,1508.04,15,3486.27,274.387,0)
 	pNpc = spawnMobile(self.planet, "coris_mao",60,1538.55,7,3105.42,79.0161,0)
 	self:setMoodString(pNpc, "calm")
 	spawnMobile(self.planet, "criminal",300,1276.88,7,3180.3,164.363,0)
@@ -455,30 +431,19 @@ function TatooineMosEnthaScreenPlay:spawnMobiles()
 	self:setMoodString(pNpc, "conversation")
 	spawnMobile(self.planet, "informant_npc_lvl_1",0,1266,7,3184,225,0)
 	spawnMobile(self.planet, "informant_npc_lvl_1",0,1727,7,3093,225,0)
-	pNpc = spawnMobile(self.planet, "miner",60,1326.44,7,3119.75,0,0)
-	self:setMoodString(pNpc, "conversation")
 	pNpc = spawnMobile(self.planet, "moisture_farmer",300,1191.8,7,2957,180.005,0)
 	self:setMoodString(pNpc, "conversation")
-	pNpc = spawnMobile(self.planet, "noble",60,1191.8,7,2955.7,360.011,0)
-	self:setMoodString(pNpc, "conversation")
-	spawnMobile(self.planet, "noble",60,1455.33,7,3335.99,114.201,0)
-	pNpc = spawnMobile(self.planet, "noble", 60, 1455.33, 7, 3335.99, 114.201, 0)
-	self:setMoodString(pNpc, "calm")
 	pNpc = spawnMobile(self.planet, "ovo",60,1744.45,7,3057.53,0,0)
 	self:setMoodString(pNpc, "conversation")
-	spawnMobile(self.planet, "gadget_specialist",60,1209.57,7,2923.54,58.9701,0)
 	pNpc = spawnMobile(self.planet, "rodian_clan_medic",300,1190.5,7,2957,135.004,0)
 	self:setMoodString(pNpc, "conversation")
 	pNpc = spawnMobile(self.planet, "rodian_clan_medic",300,1744.45,7,3058.83,180.005,0)
-	self:setMoodString(pNpc, "conversation")
-	pNpc = spawnMobile(self.planet, "scientist",60,1326.93,7,3163.39,359.931,0)
-	self:setMoodString(pNpc, "conversation")
-	pNpc = spawnMobile(self.planet, "commoner_fat",300,1326.44,7,3120.75,180.005,0)
 	self:setMoodString(pNpc, "conversation")
 	pNpc = spawnMobile(self.planet, "settler_thug",300,1355.36,7,3414.43,135.004,0)
 	self:setMoodString(pNpc, "conversation")
 	pNpc = spawnMobile(self.planet, "smuggler",300,1356.66,7,3414.43,180.005,0)
 	self:setMoodString(pNpc, "conversation")
+
 	spawnMobile(self.planet, "trainer_armorsmith",0,1247,4,3248,16,0)
 	spawnMobile(self.planet, "trainer_artisan",0,1276.55,7,3153.11,160,0)
 	spawnMobile(self.planet, "trainer_artisan",0,1324,7,3141,250,0)
