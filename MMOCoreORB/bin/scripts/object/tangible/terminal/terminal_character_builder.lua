@@ -602,6 +602,40 @@ object_tangible_terminal_terminal_character_builder = object_tangible_terminal_s
 				},
 				"Force Sensitive",
 				{
+					"Combat Prowess",
+					{
+						"Novice", "force_sensitive_combat_prowess_novice",
+						"Ranged Accuracy",
+						{
+							"Ranged Accuracy I", "force_sensitive_combat_prowess_ranged_accuracy_01",
+							"Ranged Accuracy II", "force_sensitive_combat_prowess_ranged_accuracy_02",
+							"Ranged Accuracy III", "force_sensitive_combat_prowess_ranged_accuracy_03",
+							"Ranged Accuracy IV", "force_sensitive_combat_prowess_ranged_accuracy_04"
+						},
+						"Ranged Speed",
+						{
+							"Ranged Speed I", "force_sensitive_combat_prowess_ranged_speed_01",
+							"Ranged Speed II", "force_sensitive_combat_prowess_ranged_speed_02",
+							"Ranged Speed III", "force_sensitive_combat_prowess_ranged_speed_03",
+							"Ranged Speed IV", "force_sensitive_combat_prowess_ranged_speed_04"
+						},
+						"Melee Accuracy",
+						{
+							"Melee Accuracy I", "force_sensitive_combat_prowess_melee_accuracy_01",
+							"Melee Accuracy II", "force_sensitive_combat_prowess_melee_accuracy_02",
+							"Melee Accuracy III", "force_sensitive_combat_prowess_melee_accuracy_03",
+							"Melee Accuracy IV", "force_sensitive_combat_prowess_melee_accuracy_04"
+						},
+						"Melee Speed",
+						{
+							"Melee Speed I", "force_sensitive_combat_prowess_melee_speed_01",
+							"Melee Speed II", "force_sensitive_combat_prowess_melee_speed_02",
+							"Melee Speed III", "force_sensitive_combat_prowess_melee_speed_03",
+							"Melee Speed IV", "force_sensitive_combat_prowess_melee_speed_04"
+						},
+						"Master", "force_sensitive_combat_prowess_master"
+					},
+				
 					"Crafting Mastery",
 				{
 					"Novice", "force_sensitive_crafting_mastery_novice",
