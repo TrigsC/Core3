@@ -616,8 +616,10 @@ void EntertainingSessionImplementation::doFlourish(int flourishNumber, bool gran
 			addEntertainerFlourishBuff();
 
 			// Grant Experience
-			if(grantXp && flourishCount < 2)
-				flourishXp += performance->getFlourishXpMod() / 2;
+			int loopDuration = performance->getLoopDuration();
+			int flourishCap = (int) (10 / loopDuration); // Cap for how many flourishes count towards xp per pulse. Music loops are 5s, dance are 10s so music has a cap of 2, dance a cap of 1.
+			if (grantXp && flourishCount < flourishCap)
+				flourishXp += performance->getFlourishXpMod();
 
 			flourishCount++;
 		}
