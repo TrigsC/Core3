@@ -199,6 +199,7 @@ namespace server {
 		static int spawnTheaterObject(lua_State* L);
 		static int getSchematicItemName(lua_State* L);
 		static int getBadgeListByType(lua_State* L);
+		static int getGalaxyName(lua_State* L);
 
 	private:
 		static void setupLuaPackagePath(Lua* luaEngine);
