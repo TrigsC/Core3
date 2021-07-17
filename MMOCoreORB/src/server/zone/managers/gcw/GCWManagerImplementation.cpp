@@ -20,6 +20,7 @@
 #include "server/zone/objects/installation/components/TurretDataComponent.h"
 
 #include "server/zone/managers/director/DirectorManager.h"
+#include "server/zone/managers/faction/FactionManager.h"
 #include "server/zone/managers/gcw/tasks/StartVulnerabilityTask.h"
 #include "server/zone/managers/gcw/tasks/EndVulnerabilityTask.h"
 #include "server/zone/managers/gcw/tasks/BaseDestructionTask.h"
