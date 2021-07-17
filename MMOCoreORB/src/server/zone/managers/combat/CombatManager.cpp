@@ -2899,7 +2899,7 @@ Reference<SortedVector<ManagedReference<TangibleObject*> >* > CombatManager::get
 
 			if (attacker->isPlayerCreature() && object->getParentID() != 0 && attacker->getParentID() != object->getParentID()) {
 				Reference<CellObject*> targetCell = object->getParent().get().castTo<CellObject*>();
-				CreatureObject* aggressor = attacker->asCreatureObject();
+				CreatureObject* attackerCreO = attacker->asCreatureObject();
 
 				if (attackerCreO != nullptr && targetCell != nullptr) {
 					ManagedReference<SceneObject*> parentSceneObject = targetCell->getParent().get();
