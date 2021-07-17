@@ -509,14 +509,6 @@ void FrsManagerImplementation::validatePlayerData(CreatureObject* player, bool v
 		}
 	}
 
-	int curExperience = ghost->getExperience("force_rank_xp");
-	int maxExperience = frs_xp_caps.at(realPlayerRank);
-	if (curExperience >= maxExperience) {
-		curExperience *= -1;
-		ghost->addExperience("force_rank_xp", curExperience, true);
-		ghost->addExperience("force_rank_xp", maxExperience, true);
-	}
-
 	ghost->recalculateForcePower();
 }
 
