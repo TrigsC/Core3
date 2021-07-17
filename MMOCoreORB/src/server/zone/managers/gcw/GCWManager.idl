@@ -420,9 +420,6 @@ class GCWManager extends ManagedService implements Logger {
 	
 	@local
 	private native void spawnGcwControlBanners();
-	
-	@local
-	private native void spawnGcwControlBanners();
 
 	@local
 	@read
