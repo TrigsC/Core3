@@ -134,7 +134,7 @@ class MissionManager extends Observer implements Logger {
 
 	@local
 	@dirty
-	public native NpcSpawnPoint getFreeNpcSpawnPoint(final unsigned int planetCRC, final float x, final float y, final int spawnType);
+	public native NpcSpawnPoint getFreeNpcSpawnPoint(final unsigned int planetCRC, final float x, final float y, final int spawnType, final float maxRange);
 
 	@local
 	@dirty
