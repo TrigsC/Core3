@@ -8,9 +8,9 @@
 #include "server/zone/managers/stringid/StringIdManager.h"
 #include "server/zone/managers/collision/CollisionManager.h"
 #include "server/zone/managers/frs/FrsManager.h"
-//#include "server/zone/objects/building/BuildingObject.h"
-//#include "server/zone/objects/player/PlayerObject.h"
-//#include "server/zone/objects/player/FactionStatus.h"
+#include "server/zone/objects/building/BuildingObject.h"
+#include "server/zone/objects/player/PlayerObject.h"
+#include "server/zone/objects/player/FactionStatus.h"
 
 ForceHealQueueCommand::ForceHealQueueCommand(const String& name, ZoneProcessServer* server) : JediQueueCommand(name, server) {
 	speed = 3;
