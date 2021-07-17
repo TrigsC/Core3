@@ -2021,8 +2021,6 @@ void CreatureObjectImplementation::activateQueueAction() {
 
 	nextAction.updateToCurrentTime();
 
-	float time = objectController->activateCommand(creo, action->getCommand(), action->getActionCounter(), action->getTarget(), action->getArguments());
-
 	if (time > 0) {
 		nextAction.addMiliTime((uint32)(time * 1000));
 	}
