@@ -468,10 +468,6 @@ void GCWManagerImplementation::updateWinningFaction() {
 }
 
 void GCWManagerImplementation::spawnGcwControlBanners() {
-<<<<<<< HEAD
-=======
-
->>>>>>> 563b621610 ([added] GCW Banners to non-stronghold cities - Mantis #6879)
 	if (zone == nullptr) {
 		return;
 	}
