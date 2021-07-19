@@ -1,484 +1,1102 @@
 /*
-                Copyright <SWGEmu>
-        See file COPYING for copying conditions.*/
+ 				Copyright <SWGEmu>
+		See file COPYING for copying conditions. */
 
-/**
- * @author      : lordkator (lordkator@swgemu.com)
- * @file        : SessionAPIClient.cpp
- * @created     : Fri Nov 29 10:04:14 UTC 2019
- */
+#include "ServerCore.h"
+
+#include <type_traits>
+
+#include "db/MySqlDatabase.h"
+#include "db/ServerDatabase.h"
+#include "db/MantisDatabase.h"
+
+#include "server/chat/ChatManager.h"
+#include "server/login/LoginServer.h"
+#include "system/lang/SignalException.h"
+#ifdef WITH_SESSION_API
+#include "server/login/SessionAPIClient.h"
+#endif // WITH_SESSION_API
+#include "ping/PingServer.h"
+#include "status/StatusServer.h"
+#include "web/RESTServer.h"
+#include "server/zone/ZoneServer.h"
+
+#include "server/zone/managers/object/ObjectManager.h"
+#include "templates/manager/TemplateManager.h"
+#include "server/zone/managers/player/PlayerManager.h"
+#include "server/zone/managers/director/DirectorManager.h"
+#include "server/zone/managers/collision/NavMeshManager.h"
+#include "server/zone/managers/name/NameManager.h"
+#include "server/zone/managers/frs/FrsManager.h"
+
+#include "server/zone/QuadTree.h"
+
+#include "engine/core/MetricsManager.h"
+#include "engine/service/ServiceThread.h"
+#include "engine/lua/LuaPanicException.h"
+
+ManagedReference<ZoneServer*> ServerCore::zoneServerRef = nullptr;
+SortedVector<String> ServerCore::arguments;
+bool ServerCore::truncateAllData = false;
+ServerCore* ServerCore::instance = nullptr;
+
+namespace coredetail {
+	class ConsoleReaderService final : public ServiceThread {
+		ServerCore* core;
+
+	public:
+		ConsoleReaderService(ServerCore* serverCoreInstance);
+
+		bool inputAvailable() const;
+
+		void run() override;
+	};
+
+#ifdef PLATFORM_WIN
+	static const char* EngineConfigName = "core3engine_windows";
+#else
+	static const char* EngineConfigName = "core3engine";
+#endif
+}
+
+ServerCore::ServerCore(bool truncateDatabases, const SortedVector<String>& args) :
+		Core("log/core3.log", coredetail::EngineConfigName, LogLevel::LOG), Logger("Core") {
+	orb = nullptr;
+
+	loginServer = nullptr;
+	zoneServerRef = nullptr;
+	statusServer = nullptr;
+	pingServer = nullptr;
+	database = nullptr;
+	mantisDatabase = nullptr;
+#ifdef WITH_REST_API
+	restServer = nullptr;
+#endif // WITH_REST_API
+#if WITH_SESSION_API
+	sessionAPIClient = nullptr;
+#endif // WITH_SESSION_API
+
+	truncateAllData = truncateDatabases;
+	arguments = args;
+
+	instance = this;
+
+	setLogLevel(Logger::INFO);
+
+	configManager = ConfigManager::instance();
+	metricsManager = MetricsManager::instance();
+
+	features = nullptr;
+
+	handleCmds = true;
+
+	initializeCoreContext();
+}
+
+void ServerCore::registerConsoleCommmands() {
+	debug() << "registering console commands...";
+
+	consoleCommands.setNoDuplicateInsertPlan();
+
+	const auto addCommand = [this](auto name, auto lambda) {
+		consoleCommands.put(name, lambda);
+	};
+
+	addCommand("exit", [this](const String& arguments) -> CommandResult {
+		ZoneServer* zoneServer = zoneServerRef.getForUpdate();
+
+		if (zoneServer != nullptr) {
+			ChatManager* chatManager = zoneServer->getChatManager();
+			chatManager->broadcastGalaxy(nullptr,
+					"Server is shutting down NOW!");
+		}
+
+		return SHUTDOWN;
+	});
+
+	addCommand("logQuadTree", [this](const String& arguments) -> CommandResult {
+		QuadTree::setLogging(!QuadTree::doLog());
+
+		return SUCCESS;
+	});
+
+	addCommand("info", [this](const String& arguments) -> CommandResult {
+		//TaskManager::instance()->printInfo();
+
+		ZoneServer* zoneServer = zoneServerRef.getForUpdate();
+
+		if (loginServer != nullptr)
+			loginServer->printInfo();
+
+		if (zoneServer != nullptr)
+			zoneServer->printInfo();
+
+		if (pingServer != nullptr)
+			pingServer->printInfo();
+
+		return SUCCESS;
+	});
+
+	addCommand("lock", [this](const String& arguments) -> CommandResult {
+		ZoneServer* zoneServer = zoneServerRef.getForUpdate();
+
+		if (zoneServer != nullptr)
+			zoneServer->setServerStateLocked();
+
+		return SUCCESS;
+	});
+
+	addCommand("unlock", [this](const String& arguments) -> CommandResult {
+		ZoneServer* zoneServer = zoneServerRef.getForUpdate();
+
+		if (zoneServer != nullptr)
+			zoneServer->setServerStateOnline();
+
+		return SUCCESS;
+	});
+
+	addCommand("icap", [this](const String& arguments) -> CommandResult {
+		ZoneServer* zoneServer = zoneServerRef.getForUpdate();
+
+		if (zoneServer != nullptr)
+			zoneServer->changeUserCap(50);
+
+		return SUCCESS;
+	});
+
+	addCommand("dcap", [this](const String& arguments) -> CommandResult {
+		ZoneServer* zoneServer = zoneServerRef.getForUpdate();
+
+		if (zoneServer != nullptr)
+			zoneServer->changeUserCap(-50);
+
+		return SUCCESS;
+	});
+
+	addCommand("fixQueue", [this](const String& arguments) -> CommandResult {
+		ZoneServer* zoneServer = zoneServerRef.getForUpdate();
+
+		if (zoneServer != nullptr)
+			zoneServer->fixScheduler();
+
+		return SUCCESS;
+	});
+
+	addCommand("save", [this](const String& arguments) -> CommandResult {
+		bool forceFull = !arguments.contains("delta");
+
+		ObjectManager::instance()->createBackup(forceFull);
+
+		return SUCCESS;
+	});
+
+	addCommand("help", [this](const String& arguments) -> CommandResult {
+		System::out << "available commands: ";
+
+		for (const auto& entry : consoleCommands) {
+			System::out << entry.getKey() << "  ";
+		}
+
+		System::out << endl;
+
+		return SUCCESS;
+	});
+
+	addCommand("chars", [this](const String& arguments) -> CommandResult {
+		ZoneServer* zoneServer = zoneServerRef.getForUpdate();
+		uint32 num = 0;
+
+		try {
+			num = UnsignedInteger::valueOf(arguments);
+		} catch (const Exception& e) {
+			System::out << "invalid noumber of concurrent chars per account specified" << endl;
+
+			return ERROR;
+		}
+
+		if (num != 0) {
+			PlayerManager* pMan = zoneServer->getPlayerManager();
+			pMan->setOnlineCharactersPerAccount(num);
+
+			System::out << "changed max concurrent chars per account to: " << num << endl;
+		}
+
+		return SUCCESS;
+	});
+
+	addCommand("lookupcrc", [this](const String& arguments) -> CommandResult {
+		uint32 crc = 0;
+		try {
+			crc = UnsignedInteger::valueOf(arguments);
+		} catch (const Exception& e) {
+			System::out << "invalid crc number expected dec";
+
+			return ERROR;
+		}
+
+		if (crc != 0) {
+			String file = TemplateManager::instance()->getTemplateFile(
+					crc);
+
+			System::out << "result: " << file << endl;
+		}
+
+		return SUCCESS;
+	});
+
+	addCommand("loglevel", [this](const String& arguments) -> CommandResult {
+		int level = 0;
+		try {
+			level = Integer::valueOf(arguments);
+		} catch (const Exception& e) {
+			System::out << "invalid log level" << endl;
+
+			return ERROR;
+		}
+
+		if (level >= Logger::NONE && level <= Logger::DEBUG) {
+			Logger::setGlobalFileLogLevel(static_cast<Logger::LogLevel>(level));
+
+			System::out << "global log level changed to: " << level << endl;
+		}
+
+		return SUCCESS;
+	});
+
+	addCommand("rev", [this](const String& arguments) -> CommandResult {
+		System::out << ConfigManager::instance()->getRevision() << endl;
+
+		return SUCCESS;
+	});
+
+	addCommand("broadcast", [this](const String& arguments) -> CommandResult {
+		ZoneServer* zoneServer = zoneServerRef.getForUpdate();
+
+		if (zoneServer != nullptr) {
+			ChatManager* chatManager = zoneServer->getChatManager();
+			chatManager->broadcastGalaxy(nullptr, arguments);
+			info(true) << "Console broadcasted: " << arguments;
+		}
+
+		return SUCCESS;
+	});
+
+	addCommand("shutdown", [this](const String& arguments) -> CommandResult {
+		ZoneServer* zoneServer = zoneServerRef.getForUpdate();
+		int minutes = 1;
+
+		try {
+			minutes = UnsignedInteger::valueOf(arguments);
+		} catch (const Exception& e) {
+			System::out << "invalid minutes number expected dec" << endl;
+
+			return ERROR;
+		}
+
+		if (zoneServer != nullptr) {
+			zoneServer->timedShutdown(minutes);
+
+			shutdownBlockMutex.lock();
+
+			waitCondition.wait(&shutdownBlockMutex);
+
+			shutdownBlockMutex.unlock();
+		}
+
+		return SHUTDOWN;
+	});
+
+	addCommand("playercleanup", [this](const String& arguments) -> CommandResult {
+		ZoneServer* zoneServer = zoneServerRef.getForUpdate();
+
+		if (zoneServerRef != nullptr) {
+			ZoneServer* server = zoneServerRef.get();
+
+			if (server != nullptr)
+				server->getPlayerManager()->cleanupCharacters();
+		}
+
+		return SUCCESS;
+	});
+
+	addCommand("playercleanupstats", [this](const String& arguments) -> CommandResult {
+		ZoneServer* zoneServer = zoneServerRef.getForUpdate();
+
+		if (zoneServerRef != nullptr) {
+			ZoneServer* server = zoneServerRef.get();
+
+			if (server != nullptr)
+				server->getPlayerManager()->getCleanupCharacterCount();
+		}
+
+		return SUCCESS;
+	});
+
+	addCommand("test", [this](const String& arguments) -> CommandResult {
+		Lua* lua = DirectorManager::instance()->getLuaInstance();
+
+		// create the lua function
+		UniqueReference<LuaFunction*> func(lua->createFunction("Tests", arguments, 0));
+		func->callFunction();
+
+		return SUCCESS;
+	});
+
+	addCommand("reloadscreenplays", [this](const String& arguments) -> CommandResult {
+		DirectorManager::instance()->reloadScreenPlays();
+
+		return SUCCESS;
+	});
+
+	addCommand("reloadmanager", [this](const String& arguments) -> CommandResult {
+		if (arguments == "name") {
+			ZoneServer* server = zoneServerRef.get();
+
+			if (server != nullptr)
+				server->getNameManager()->loadConfigData(true);
+		} else {
+			System::out << "Invalid manager. Reloadable managers: name" << endl;
+		}
+
+		return SUCCESS;
+	});
+
+	addCommand("clearstats", [this](const String& arguments) -> CommandResult {
+		Core::getTaskManager()->clearWorkersTaskStats();
+
+		return SUCCESS;
+	});
+
+#ifdef COLLECT_TASKSTATISTICS
+	addCommand("statsd", [this](const String& arguments) -> CommandResult {
+		StringTokenizer argTokenizer(arguments);
+
+		argTokenizer.setDelimiter(" ");
+
+		String address;
+		int port = 0;
+
+		if (argTokenizer.hasMoreTokens())
+			argTokenizer.getStringToken(address);
+
+		if (argTokenizer.hasMoreTokens())
+			port = argTokenizer.getIntToken();
+
+		if (port) {
+			MetricsManager::instance()->initializeStatsDConnection(address.toCharArray(), port);
+
+			System::out << "metrics manager connection set to" << address << ":" << port << endl;
+		} else {
+			System::out << "invalid port or address" << endl;
+		}
+
+		return SUCCESS;
+	});
+
+	addCommand("samplerate", [this](const String& arguments) -> CommandResult {
+		try {
+			int rate = UnsignedInteger::valueOf(arguments);
+
+			Core::getTaskManager()->setStatsDTaskSampling(rate);
+
+			System::out << "statsd sampling rate changed to " << rate << endl;
+		} catch (const Exception& e) {
+			System::out << "invalid statsd sampling rate" << endl;
+
+			return ERROR;
+		}
+
+		return SUCCESS;
+	});
+
+	addCommand("sampleratedb", [this](const String& arguments) -> CommandResult {
+		try {
+			int rate = UnsignedInteger::valueOf(arguments);
+
+			Core::getTaskManager()->setStatsDBdbSamplingRate(rate);
+
+			System::out << "statsd berkeley db sampling rate changed to " << rate << endl;
+		} catch (const Exception& e) {
+			System::out << "invalid statsd sampling rate" << endl;
+
+			return ERROR;
+		}
+
+		return SUCCESS;
+	});
+#endif
+	const auto pvpModeLambda = [this](const String& arguments) -> CommandResult {
+		System::out << "PvpMode = " << ConfigManager::instance()->getPvpMode() << endl;
+
+		return SUCCESS;
+	};
+
+	addCommand("getpvpmode", pvpModeLambda);
+	addCommand("getpvp", pvpModeLambda);
+
+	const auto setPvpModeLambda = [this](const String& arguments) -> CommandResult {
+		int num;
+
+		try {
+			if (arguments == "on") {
+				num = 1;
+			} else if (arguments == "off") {
+				num = 0;
+			} else {
+				num = UnsignedInteger::valueOf(arguments);
+			}
+
+			if (num == 1) {
+				ConfigManager::instance()->setPvpMode(true);
+			} else {
+				ConfigManager::instance()->setPvpMode(false);
+			}
+
+			info(true) << "console set new PvpMode = " << ConfigManager::instance()->getPvpMode();
+		} catch (const Exception& e) {
+			System::out << "invalid PvpMode: (0=off; 1=on)" << endl;
+
+			return ERROR;
+		}
+
+		return SUCCESS;
+	};
+
+	addCommand("setpvpmode", setPvpModeLambda);
+	addCommand("setpvp", setPvpModeLambda);
+
+	const auto dumpConfigLambda = [this](const String& arguments) -> CommandResult {
+		ConfigManager::instance()->dumpConfig(arguments == "all");
+
+		return SUCCESS;
+	};
+
+	addCommand("dumpcfg", dumpConfigLambda);
+	addCommand("dumpconfig", dumpConfigLambda);
 
 #ifdef WITH_SESSION_API
+	const auto sessionApiLambda = [this](const String& arguments) -> CommandResult {
+		return SessionAPIClient::instance()->consoleCommand(arguments) ? SUCCESS : ERROR;
+	};
 
-#define SESSION_API_CLIENT_VERSION 1002
+	addCommand("sessions", sessionApiLambda);
+	addCommand("sessionapi", sessionApiLambda);
+#endif // WITH_SESSION_API
 
-#include "SessionAPIClient.h"
+	addCommand("toggleModifiedObjectsDump", [this](const String& arguments) -> CommandResult {
+		DOBObjectManager::setDumpLastModifiedTraces(!DOBObjectManager::getDumpLastModifiedTraces());
 
-#include <cpprest/filestream.h>
-#include <cpprest/http_client.h>
-#include <pplx/threadpool.h>
+		System::out << "dump last modified traces set to " << DOBObjectManager::getDumpLastModifiedTraces();
 
-using namespace utility;
-using namespace web;
-using namespace web::http;
-using namespace web::http::client;
+		return SUCCESS;
+	});
 
-SessionAPIClient::SessionAPIClient() {
-	trxCount = 0;
+	addCommand("runLuaFunction", [this](const String& arguments) -> CommandResult {
+		StringTokenizer argTokenizer(arguments);
 
-	// Separate log file to avoid spamming the console
-	setLoggingName("SessionAPIClient");
-	setFileLogger("log/session_api.log", true, ConfigManager::instance()->getRotateLogAtStart());
-	setLogSynchronized(true);
-	setRotateLogSizeMB(ConfigManager::instance()->getInt("Core3.Login.API.RotateLogSizeMB", ConfigManager::instance()->getRotateLogSizeMB()));
-	setLogToConsole(false);
-	setGlobalLogging(false);
-	setLogging(true);
+		argTokenizer.setDelimiter(":");
 
-	auto config = ConfigManager::instance();
+		String module;
+		String function;
 
-	debugLevel = config->getInt("Core3.Login.API.DebugLevel", 0);
+		if (argTokenizer.hasMoreTokens())
+			argTokenizer.getStringToken(module);
 
-	setLogLevel(static_cast<Logger::LogLevel>(debugLevel));
+		if (argTokenizer.hasMoreTokens())
+			argTokenizer.getStringToken(function);
 
-	galaxyID = config->getZoneGalaxyID();
+		if (module.isEmpty() || function.isEmpty()) {
+			System::out << "Usage: runLuaFunction {module}:{function}" << endl;
 
-	dryRun = config->getBool("Core3.Login.API.DryRun", false);
+			return ERROR;
+		}
 
-	baseURL = config->getString("Core3.Login.API.BaseURL", "");
+		System::out << "Attemping to run " << module << ":" << function << endl;
 
-	if (baseURL.length() == 0) {
-		warning() << "Missing Core3.Login.API.BaseURL, Sessions API disabled.";
-		apiEnabled = false;
-		return;
-	} else {
-		apiEnabled = true;
-	}
+		Lua* lua = DirectorManager::instance()->getLuaInstance();
+		lua_State* L = lua->getLuaState();
+		CommandResult cmdResult = NOTFOUND;
 
-	apiToken = config->getString("Core3.Login.API.APIToken", "");
-
-	if (apiToken.length() == 0) {
-		warning() << "Missing Core3.Login.API.APIToken, Sessions API disabled.";
-		apiEnabled = false;
-		return;
-	}
-
-	failOpen = config->getBool("Core3.Login.API.FailOpen", false);
-
-	info(true) << "Starting " << toString();
-
-	// TODO: Make this a config option?
-	// crossplat::threadpool::initialize_with_threads(8);
-}
-
-SessionAPIClient::~SessionAPIClient() {
-	crossplat::threadpool::shared_instance().service().stop();
-	info(true) << "Shutdown";
-}
-
-String SessionAPIClient::toStringData() const {
-	return toString();
-}
-
-String SessionAPIClient::toString() const {
-	StringBuffer buf;
-
-	buf << "SessionAPIClient " << this << " ["
-		<< "apiEnabled: " << apiEnabled << ", "
-		<< "trxCount: " << trxCount << ", "
-		<< "errCount: " << errCount << ", "
-		<< "failOpen: " << failOpen << ", "
-		<< "dryRun: " << dryRun << ", "
-		<< "debugLevel: " << debugLevel << ", "
-		<< "baseURL: " << baseURL << "]"
-		;
-
-	return buf.toString();
-}
-
-void SessionAPIClient::apiCall(const String& src, const String& basePath, const SessionAPICallback& resultCallback) {
-	// If not enabled just return ALLOW all the time
-	if (!apiEnabled) {
-		SessionApprovalResult result;
-
-		result.setAction(SessionApprovalResult::ApprovalAction::ALLOW);
-		result.setTitle("");
-		result.setMessage("");
-		result.setDetails("API Not enabled.");
-		result.setDebugValue("trx_id", "api-disabled");
-
-		Core::getTaskManager()->executeTask([resultCallback, result] {
-			resultCallback(result);
-		}, "SessionAPIClientResult-nop-" + src, "slowQueue");
-		return;
-	}
-
-	Time startTime;
-
-	incrementTrxCount();
-
-	String path = basePath;
-
-	if (dryRun) {
-		path = basePath + (basePath.indexOf("?") == -1 ? "?" : "&") + "debug=1&dryrun=1";
-	}
-
-	debug() << src << " START apiCall [path=" << path << "]";
-
-	web::http::client::http_client_config client_config;
-
-	client_config.set_validate_certificates(false);
-
-	utility::seconds timeout(5);
-
-	client_config.set_timeout(timeout);
-
-	http_client client(baseURL.toCharArray(), client_config);
-
-	http_request req(methods::GET);
-
-	String authHeader = "Bearer " + apiToken;
-
-	req.headers().add(U("Authorization"), authHeader.toCharArray());
-
-	req.set_request_uri(path.toCharArray());
-
-	client.request(req)
-		.then([this, src, path](pplx::task<http_response> task) {
-			http_response resp;
-			bool failed = false;
-
-			try {
-				resp = task.get();
-			} catch (const http_exception& e) {
-				error() << src << " " << path << " HTTP Exception caught: " << e.what();
-				failed = true;
+		try {
+			if (!lua->checkStack(0)) {
+				error() << "Warning Lua Stack is not clean!";
 			}
 
-			if (failed || resp.status_code() != 200) {
-				incrementErrorCount();
+			UniqueReference<LuaFunction*> func(lua->createFunction(module, function, 1));
 
-				error() << src << " HTTP Status " << resp.status_code() << " returned.";
-
-				auto json_err = json::value();
-
-				json_err[U("action")] = json::value::string(U("TEMPFAIL"));
-				json_err[U("title")] = json::value::string(U("Temporary Server Error"));
-				json_err[U("message")] = json::value::string(U("If the error continues please contact support and mention error code = N"));
-
-				StringBuffer buf;
-
-				if (failed) {
-					buf << "Exception caught handling request, ";
-				}
-
-				buf << "http_response.status_code() == " << resp.status_code();
-
-				json_err[U("details")] = json::value::string(U(buf.toString().toCharArray()));
-
-				return pplx::task_from_result(json_err);
+			while (argTokenizer.hasMoreTokens()) {
+				String arg;
+				argTokenizer.getStringToken(arg);
+				*func << arg;
 			}
 
-			return resp.extract_json();
-		}).then([this, src, path, resultCallback, startTime](pplx::task<json::value> task) {
-			SessionApprovalResult result;
-			auto logPrefix = result.getClientTrxId() + " " + src + ": ";
-			auto result_json = json::value();
-			bool failed = false;
+			if (func->callFunction() == nullptr) {
+				String errorMessage = lua_tostring(L, -1);
 
-			try {
-				result_json = task.get();
-			} catch (const http_exception& e) {
-				error() << logPrefix << " " << path << " HTTP Exception caught reading body: " << e.what();
-				failed = true;
-			}
+				lua_pop(L, 1);
 
-			if (result_json.is_null()) {
-				incrementErrorCount();
-				error() << logPrefix << "Null JSON result from server.";
-				result.setAction(SessionApprovalResult::ApprovalAction::TEMPFAIL);
-				result.setTitle("Temporary Server Error");
-				result.setMessage("If the error continues please contact support and mention error code = K");
+				System::out << "Failed to runLuaFunction " << module << ":" << function << ": " << errorMessage << endl;
+
+				cmdResult = ERROR;
 			} else {
-				result.setRawJSON(String(result_json.serialize().c_str()));
+				lua_pop(L, 1);
 
-				if (result_json.has_field("action")) {
-					result.setAction(String(result_json[U("action")].as_string().c_str()));
-				} else if (failOpen) {
-					warning() << logPrefix << "Missing action from result, failing to ALLOW: JSON: " << result_json.serialize().c_str();
-					result.setAction(SessionApprovalResult::ApprovalAction::ALLOW);
+				String result;
+
+				if (lua_type(L, 0) == LUA_TSTRING) {
+					result = lua_tostring(L, 0);
 				} else {
-					incrementErrorCount();
-					result.setAction(SessionApprovalResult::ApprovalAction::TEMPFAIL);
-					result.setTitle("Temporary Server Error");
-					result.setMessage("If the error continues please contact support and mention error code = L");
-					result.setDetails("Missing action field from server");
+					result = "<" + (String)lua_typename(L, lua_type(L, 0)) + ">";
 				}
 
-				if (result_json.has_field("title")) {
-					result.setTitle(String(result_json[U("title")].as_string().c_str()));
-				}
+				System::out << "runLuaFunction " << module << ":" << function << ": result=[" << result << "]" << endl;
 
-				if (result_json.has_field("message")) {
-					result.setMessage(String(result_json[U("message")].as_string().c_str()));
-				}
+				cmdResult = SUCCESS;
+			}
+		} catch (const Exception& e) {
+			System::out << "Exception in runLuaFunction " << module << ":" << function << " - " << e.getMessage() << endl << Lua::dumpStack(L);
+		}
 
-				if (result_json.has_field("details")) {
-					result.setDetails(String(result_json[U("details")].as_string().c_str()));
-				}
+		return cmdResult;
+	});
 
-				if (result_json.has_field("debug")) {
-					auto debug = result_json[U("debug")];
+	debug() << "registered " << consoleCommands.size() << " console commands.";
+}
 
-					if (debug.has_field("trx_id")) {
-						result.setDebugValue("trx_id", String(debug[U("trx_id")].as_string().c_str()));
+ServerCore::~ServerCore() {
+	finalizeContext();
+}
+
+class ZoneStatisticsTask: public Task {
+	Reference<ZoneServer*> zoneServer;
+
+public:
+	ZoneStatisticsTask(ZoneServer* server) {
+		zoneServer = server;
+	}
+
+	void run() {
+		zoneServer->printInfo();
+	}
+};
+
+void ServerCore::finalizeContext() {
+	server::db::mysql::MySqlDatabase::finalizeLibrary();
+}
+
+void ServerCore::initializeCoreContext() {
+	server::db::mysql::MySqlDatabase::initializeLibrary();
+
+	class ThreadHook : public ThreadInitializer {
+	public:
+		void onThreadStart(Thread* thread) final {
+			server::db::mysql::MySqlDatabase::onThreadStart();
+		}
+
+		void onThreadEnd(Thread* thread) final {
+			server::db::mysql::MySqlDatabase::onThreadEnd();
+		}
+	};
+
+	Thread::setThreadInitializer(new ThreadHook());
+}
+
+void ServerCore::signalShutdown() {
+	shutdownBlockMutex.lock();
+
+	waitCondition.broadcast(&shutdownBlockMutex);
+
+	shutdownBlockMutex.unlock();
+}
+
+void ServerCore::initialize() {
+	info(true) << "Server start, pid: "
+		<< Thread::getProcessID() << ", time: " << Time().getFormattedTime();
+
+	processConfig();
+
+	Logger::setGlobalFileLogger(configManager->getLogFile(), configManager->getRotateLogSizeMB(), configManager->getRotateLogAtStart());
+	Logger::setGlobalFileJson(configManager->getJsonLogOutput());
+	Logger::setGlobalFileLoggerSync(configManager->getSyncLogOutput());
+	Logger::setGlobalFileLogLevel(static_cast<Logger::LogLevel>(configManager->getLogFileLevel()));
+
+	registerConsoleCommmands();
+
+	try {
+		ObjectManager* objectManager = ObjectManager::instance();
+
+		database = new ServerDatabase(configManager);
+
+		mantisDatabase = new MantisDatabase(configManager);
+
+		const String& orbaddr = configManager->getORBNamingDirectoryAddress();
+		orb = DistributedObjectBroker::initialize(orbaddr,
+				configManager->getORBNamingDirectoryPort());
+
+		orb->setCustomObjectManager(objectManager);
+
+		info() << "MetricsServer: " << configManager->shouldUseMetrics()
+			<< " " << configManager->getMetricsHost() << " " << configManager->getMetricsPort();
+
+		if (configManager->shouldUseMetrics()) {
+			metricsManager->setGlobalPrefix(configManager->getMetricsPrefix());
+			metricsManager->initializeStatsDConnection(
+					configManager->getMetricsHost().toCharArray(),
+					configManager->getMetricsPort());
+		}
+
+		if (configManager->getMakeLogin()) {
+			loginServer = new LoginServer(configManager);
+			loginServer->deploy("LoginServer");
+			database->instance()->executeStatement("TRUNCATE TABLE sessions");
+		}
+
+		if (configManager->getMakeZone()) {
+			ZoneServer* zoneServer = new ZoneServer(configManager);
+			zoneServer->deploy("ZoneServer");
+
+			zoneServerRef = zoneServer;
+		}
+
+		if (configManager->getMakePing()) {
+			pingServer = new PingServer();
+		}
+
+		if (configManager->getMakeStatus()) {
+			statusServer = new StatusServer(configManager, zoneServerRef);
+		}
+
+#ifdef WITH_REST_API
+		restServer = new server::web3::RESTServer();
+		restServer->start();
+#endif // WITH_REST_API
+
+#if WITH_SESSION_API
+		if (ConfigManager::instance()->getString("Core3.Login.API.BaseURL", "").length() > 0) {
+			sessionAPIClient = SessionAPIClient::instance();
+		}
+#endif // WITH_SESSION_API
+
+		ZoneServer* zoneServer = zoneServerRef.get();
+
+		NavMeshManager::instance()->initialize(configManager->getMaxNavMeshJobs(), zoneServer);
+
+		if (zoneServer != nullptr) {
+			int zonePort = configManager->getZoneServerPort();
+
+			int zoneAllowedConnections =
+					configManager->getZoneAllowedConnections();
+
+			if (arguments.contains("deleteNavMeshes") && zoneServer != nullptr) {
+				zoneServer->setShouldDeleteNavAreas(true);
+			}
+
+			ObjectDatabaseManager* dbManager =
+					ObjectDatabaseManager::instance();
+			dbManager->loadDatabases(truncateDatabases());
+
+			int galaxyID = configManager->getZoneGalaxyID();
+
+			try {
+				if (zonePort == 0) {
+					const String query = "SELECT port FROM galaxy WHERE galaxy_id = "
+								   + String::valueOf(galaxyID);
+					UniqueReference<ResultSet*> result(database->instance()->executeQuery(query));
+
+					if (result != nullptr && result->next()) {
+						zonePort = result->getInt(0);
 					}
 				}
+
+				database->instance()->executeStatement(
+						"DELETE FROM characters_dirty WHERE galaxy_id = "
+						+ String::valueOf(galaxyID));
+			} catch (const DatabaseException &e) {
+				fatal(e.getMessage());
 			}
 
-			result.setElapsedTimeMS(startTime.miliDifference());
-
-			if (result.getElapsedTimeMS() > 500)
-				warning() << "Slow API Call: " << result.toString();
-
-			if (dryRun) {
-				debug() << logPrefix << "DryRun: original result = " << result;
-
-				result.setAction(SessionApprovalResult::ApprovalAction::ALLOW);
-				result.setTitle("");
-				result.setMessage("");
-				result.setDetails("");
-				result.setDebugValue("trx_id", "dry-run-trx-id");
-			}
-
-			debug() << logPrefix << "END apiCall [path=" << path << "] result = " << result;
-
-			Core::getTaskManager()->executeTask([resultCallback, result] {
-				resultCallback(result);
-			}, "SessionAPIClientResult-" + src, "slowQueue");
-		});
-}
-
-void SessionAPIClient::apiNotify(const String& src, const String& basePath) {
-	apiCall(src, basePath, [=](SessionApprovalResult result) {
-		if (!result.isActionAllowed()) {
-			error() << src << " unexpected failure: " << result;
+			zoneServer->start(zonePort, zoneAllowedConnections);
 		}
-	});
-}
 
-void SessionAPIClient::notifyGalaxyStart(uint32 galaxyID) {
-	StringBuffer path;
+		if (statusServer != nullptr) {
+			int statusPort = configManager->getStatusPort();
+			int statusAllowedConnections =
+					configManager->getStatusAllowedConnections();
 
-	// Save for later
-	this->galaxyID = galaxyID;
-
-	path << "/v1/core3/galaxy/" << galaxyID << "/start?client_version=" << SESSION_API_CLIENT_VERSION;
-
-	apiNotify(__FUNCTION__, path.toString());
-}
-
-void SessionAPIClient::notifyGalaxyShutdown() {
-	StringBuffer path;
-
-	path << "/v1/core3/galaxy/" << galaxyID << "/shutdown?client_version=" << SESSION_API_CLIENT_VERSION;
-
-	apiNotify(__FUNCTION__, path.toString());
-}
-
-void SessionAPIClient::approveNewSession(const String& ip, uint32 accountID, const SessionAPICallback& resultCallback) {
-	StringBuffer path;
-
-	path << "/v1/core3/account/" << accountID << "/galaxy/" << galaxyID << "/session/ip/" << ip << "/approval";
-
-	apiCall(__FUNCTION__, path.toString(), resultCallback);
-}
-
-void SessionAPIClient::notifySessionStart(const String& ip, uint32 accountID) {
-	StringBuffer path;
-
-	path << "/v1/core3/account/" << accountID << "/galaxy/" << galaxyID << "/session/ip/" << ip << "/start";
-
-	apiNotify(__FUNCTION__, path.toString());
-}
-
-void SessionAPIClient::notifyDisconnectClient(const String& ip, uint32 accountID, uint64_t characterID, String eventType) {
-	StringBuffer path;
-
-	path << "/v1/core3/account/" << accountID << "/galaxy/" << galaxyID << "/session/ip/" << ip << "/player/" << characterID << "/disconnect"
-		<< "?eventType=" << eventType;
-
-	apiNotify(__FUNCTION__, path.toString());
-}
-
-void SessionAPIClient::approvePlayerConnect(const String& ip, uint32 accountID, uint64_t characterID,
-		const ArrayList<uint32>& loggedInAccounts, const SessionAPICallback& resultCallback) {
-	StringBuffer path;
-
-	path << "/v1/core3/account/" << accountID << "/galaxy/" << galaxyID << "/session/ip/" << ip << "/player/" << characterID << "/approval";
-
-	if (loggedInAccounts.size() > 0) {
-		path << "?loggedin_accounts";
-
-		for (int i = 0; i < loggedInAccounts.size(); ++i) {
-			path << (i == 0 ? "=" : ",") << loggedInAccounts.get(i);
+			statusServer->start(statusPort, statusAllowedConnections);
 		}
-	}
 
-	apiCall(__FUNCTION__, path.toString(), resultCallback);
-}
+		if (pingServer != nullptr) {
+			int pingPort = configManager->getPingPort();
+			int pingAllowedConnections =
+					configManager->getPingAllowedConnections();
 
-void SessionAPIClient::notifyPlayerOnline(const String& ip, uint32 accountID, uint64_t characterID) {
-	StringBuffer path;
-
-	path << "/v1/core3/account/" << accountID << "/galaxy/" << galaxyID << "/session/ip/" << ip << "/player/" << characterID << "/online";
-
-	apiNotify(__FUNCTION__, path.toString());
-}
-
-void SessionAPIClient::notifyPlayerOffline(const String& ip, uint32 accountID, uint64_t characterID) {
-	StringBuffer path;
-
-	path << "/v1/core3/account/" << accountID << "/galaxy/" << galaxyID << "/session/ip/" << ip << "/player/" << characterID << "/offline";
-
-	apiNotify(__FUNCTION__, path.toString());
-}
-
-bool SessionAPIClient::consoleCommand(const String& arguments) {
-	StringTokenizer tokenizer(arguments);
-
-	String subcmd;
-
-	if (tokenizer.hasMoreTokens()) {
-		tokenizer.getStringToken(subcmd);
-		subcmd = subcmd.toLowerCase();
-	}
-
-	if (subcmd == "help") {
-		System::out << "Available sessionapi commands:" << endl
-			<< "\thelp - This command" << endl
-			<< "\tenable - Enable Session API Client" << endl
-			<< "\tdisable - Disable Session API Client" << endl
-			<< "\tstatus - Session API status" << endl
-			<< "\tdryrun {off} - Control session dry run setting" << endl
-			<< "\tdebug {level} - Set debug level for session API" << endl
-			;
-		return true;
-	} else if (subcmd == "enable") {
-		if (baseURL.length() == 0 || apiToken.length() == 0) {
-			info(true) << "SessionAPIClient can not be enabled without Core3.Login.API.BaseURL and Core3.Login.API.APIToken.";
-		} else {
-			apiEnabled = true;
-			info(true) << "SessionAPIClient enabled.";
+			pingServer->start(pingPort, pingAllowedConnections);
 		}
-		return true;
-	} else if (subcmd == "disable") {
-		apiEnabled = false;
-		info(true) << "SessionAPIClient disabled.";
-		return true;
-	} else if (subcmd == "status") {
-		System::out << "Status for " << toString() << endl;
-		return true;
-	} else if (subcmd == "dryrun") {
-		bool newDryRun = true;
 
-		if (tokenizer.hasMoreTokens()) {
-			String arg1;
-			tokenizer.getStringToken(arg1);
+		if (loginServer != nullptr) {
+			int loginPort = configManager->getLoginPort();
+			int loginAllowedConnections =
+					configManager->getLoginAllowedConnections();
 
-			if (arg1.toLowerCase() == "off") {
-				newDryRun = false;
+			loginServer->start(loginPort, loginAllowedConnections);
+		}
+
+		ObjectManager::instance()->scheduleUpdateToDatabase();
+
+		info("initialized", true);
+
+		System::flushStreams();
+
+#if WITH_SESSION_API
+		if (ConfigManager::instance()->getString("Core3.Login.API.BaseURL", "").length() > 0) {
+			if (configManager != nullptr) {
+				sessionAPIClient->notifyGalaxyStart(configManager->getZoneGalaxyID());
 			}
 		}
-
-		dryRun = newDryRun;
-
-		if (dryRun) {
-			info(true) << "SessionAPIClient set to dry run, api calls continue but results are ignored.";
-		} else {
-			info(true) << "SessionAPIClient set to run, api results will be honored by the server.";
-		}
-
-		return true;
-	} else if (subcmd == "debug" || subcmd == "debuglevel") {
-		int newDebugLevel = 9;
-
-		if (tokenizer.hasMoreTokens()) {
-			newDebugLevel = tokenizer.getIntToken();
-		}
-
-		debugLevel = newDebugLevel;
-
-		info(true) << "DebugLevel set to " << debugLevel << " by console command.";
-
-		return true;
-	}
-
-	info(true) << "Unknown sessionapi subcommand: " << subcmd;
-
-	return false;
-}
-
-String SessionApprovalResult::toStringData() const {
-	return toString();
-}
-
-String SessionApprovalResult::toString() const {
-	StringBuffer buf;
-
-	buf << "SessionApprovalResult " << this << " ["
-		<< "clientTrxId: " << getClientTrxId() << ", "
-		<< "trxId: " << getTrxId() << ", "
-		<< "action: " << actionToString(getAction()) << ", "
-		<< "title: '" << getTitle() << "', "
-		<< "message: '" << getMessage() << "', "
-		<< "details: '" << getDetails() << "'"
-		;
-
-	if (getRawJSON().length() > 0) {
-		buf << ", JSON: '" << getRawJSON() << "'";
-	}
-
-	buf << ", elapsedTimeMS: " << getElapsedTimeMS() << "]";
-
-	return buf.toString();
-}
-
-String SessionApprovalResult::getLogMessage() const {
-	int debugLevel = SessionAPIClient::instance()->getDebugLevel();
-
-	StringBuffer buf;
-
-	buf << "SessionApprovalResult " << this << " ["
-		<< "clientTrxId: " << getClientTrxId() << ", "
-		<< "trxId: " << getTrxId() << ", "
-		<< "action: " << actionToString(getAction()) << ", "
-		;
-
-	if (debugLevel == Logger::DEBUG) {
-		buf << "message: '" << getMessage() << "', ";
-	}
-
-	buf << "details: '" << getDetails() << "'" ;
-
-	if (debugLevel == Logger::DEBUG && getRawJSON().length() > 0) {
-		buf << ", JSON: '" << getRawJSON() << "'";
-	}
-
-	buf << ", elapsedTimeMS: " << getElapsedTimeMS() << "]";
-
-	return buf.toString();
-}
-
-SessionApprovalResult::SessionApprovalResult() {
-	// Generate simple code for log tracing
-	uint64 trxid = (System::getMikroTime() << 8) | System::random(255);
-
-	resultClientTrxId = String::hexvalueOf(trxid);
-	resultAction = ApprovalAction::UNKNOWN;
-	resultElapsedTimeMS = 0ull;
-
-	resultDebug.setNullValue("<not set>");
-}
-
 #endif // WITH_SESSION_API
+
+		if (arguments.contains("playercleanup") && zoneServer != nullptr) {
+			zoneServer->getPlayerManager()->cleanupCharacters();
+		}
+
+		if (arguments.contains("playercleanupstats") && zoneServer != nullptr) {
+			zoneServer->getPlayerManager()->getCleanupCharacterCount();
+		}
+
+		if (arguments.contains("shutdown")) {
+			handleCmds = false;
+		}
+
+	} catch (const ServiceException& e) {
+		shutdown();
+	} catch (const DatabaseException& e) {
+		fatal(e.getMessage());
+	}
+}
+
+void ServerCore::run() {
+	handleCommands();
+
+	shutdown();
+}
+
+void ServerCore::shutdown() {
+	info(true) << "shutting down server..";
+
+	handleCmds = false;
+
+#ifdef WITH_REST_API
+	if (restServer) {
+		restServer->stop();
+
+		delete restServer;
+		restServer = nullptr;
+	}
+#endif // WITH_REST_API
+
+	ObjectManager* objectManager = ObjectManager::instance();
+
+	while (objectManager->isObjectUpdateInProgress())
+		Thread::sleep(500);
+
+	objectManager->cancelDeleteCharactersTask();
+	objectManager->cancelUpdateModifiedObjectsTask();
+
+	if (loginServer != nullptr) {
+		loginServer->stop();
+		loginServer = nullptr;
+	}
+
+	ZoneServer* zoneServer = zoneServerRef.get();
+
+	if (zoneServer != nullptr) {
+		zoneServer->setServerStateShuttingDown();
+
+		Thread::sleep(2000);
+
+		info("Disconnecting all players", true);
+
+		PlayerManager* playerManager = zoneServer->getPlayerManager();
+
+		playerManager->stopOnlinePlayerLogTask();
+		playerManager->disconnectAllPlayers();
+
+		int count = 0;
+		while (zoneServer->getConnectionCount() > 0 && count < 20) {
+			Thread::sleep(500);
+			count++;
+		}
+
+		info("All players disconnected", true);
+
+		auto frsManager = zoneServer->getFrsManager();
+
+		if (frsManager != nullptr) {
+			frsManager->cancelTasks();
+		}
+	}
+
+	if (pingServer != nullptr) {
+		pingServer->stop();
+		pingServer = nullptr;
+	}
+
+	if (statusServer != nullptr) {
+		statusServer->stop();
+		statusServer = nullptr;
+	}
+
+	NavMeshManager::instance()->stop();
+
+	Thread::sleep(5000);
+
+	objectManager->createBackup(true);
+
+	while (objectManager->isObjectUpdateInProgress())
+		Thread::sleep(500);
+
+	info("database backup done", true);
+
+	objectManager->cancelUpdateModifiedObjectsTask();
+
+	if (zoneServer != nullptr) {
+		zoneServer->clearZones();
+	}
+
+	orb->shutdown();
+
+	Core::shutdownTaskManager();
+
+	if (zoneServer != nullptr) {
+		zoneServer->stop();
+		zoneServer = nullptr;
+	}
+
+	DistributedObjectDirectory* dir = objectManager->getLocalObjectDirectory();
+
+	HashTable<uint64, Reference<DistributedObject*> > tbl;
+	auto objects = dir->getDistributedObjectMap();
+	auto objectsIterator = objects->iterator();
+	typedef std::remove_reference<decltype(*objects)>::type ObjectsMapType;
+
+	while (objectsIterator.hasNext()) {
+		ObjectsMapType::key_type* key;
+		ObjectsMapType::value_type* value;
+
+		objectsIterator.getNextKeyAndValue(key, value);
+
+		tbl.put(*key, *value);
+	}
+
+	objectManager->finalizeInstance();
+
+#ifdef WITH_SESSION_API
+	if (sessionAPIClient) {
+		if (configManager != nullptr) {
+			sessionAPIClient->notifyGalaxyShutdown();
+		}
+
+		sessionAPIClient->finalizeInstance();
+	}
+#endif // WITH_SESSION_API
+
+	configManager = nullptr;
+	metricsManager = nullptr;
+
+	if (database != nullptr) {
+		delete database;
+		database = nullptr;
+	}
+
+	if (mantisDatabase != nullptr) {
+		delete mantisDatabase;
+		mantisDatabase = nullptr;
+	}
+
+	if (features != nullptr) {
+		delete features;
+		features = nullptr;
+	}
+
+	NetworkInterface::finalize();
+
+	Logger::closeGlobalFileLogger();
+
+	orb->finalizeInstance();
+
+	zoneServerRef = nullptr;
+
+	info("server closed", true);
+}
+
+ServerCore::CommandResult ServerCore::processConsoleCommand(const String& commandString) {
+	CommandResult result = CommandResult::NOTFOUND;
+
+	try {
+		StringTokenizer tokenizer(commandString);
+
+		String command, arguments;
+
+		if (tokenizer.hasMoreTokens())
+			tokenizer.getStringToken(command);
+
+		if (tokenizer.hasMoreTokens())
+			arguments = tokenizer.getRemainingString();
+
+		auto it = consoleCommands.find(command);
+
+		if (it != consoleCommands.npos) {
+			result = consoleCommands.get(it)(arguments);
+		} else {
+			result = CommandResult::NOTFOUND;
+		}
+	} catch (const Exception& e) {
+		error() << commandString << " EXCEPTION: " <<  e.getMessage();
+
+		return CommandResult::ERROR;
+	}
+
+	return result;
+}
+
+void ServerCore::queueConsoleCommand(const String& commandString) {
+	if (!handleCmds) {
+		error() << "Ignoring queued command: " << commandString;
+		return;
+	}
+
+	auto line = commandString + "\n";
+	consoleCommandPipe.writeLine(line.toCharArray());
+}
+
+void ServerCore::handleCommands() {
+	if (!handleCmds)
+		return;
+
+	consoleCommandPipe.create(false);
+
+	auto reader = coredetail::ConsoleReaderService(instance);
+	reader.start(true);
+
+	while (handleCmds) {
+		Thread::sleep(500);
+
+		System::out << "\nREADY\n> " << flush;
+
+		char line[256];
+
+		auto len = consoleCommandPipe.readLine(line, sizeof(line));
+
+		if (!len)
+			continue;
+
+		auto cmd = String(line).trim();
+
+		if (cmd.isEmpty())
+			continue;
+
+		if (!handleCmds) {
+			error() << "console command processing disabled, ignoring: " << cmd;
+			break;
+		}
+
+		auto result = processConsoleCommand(cmd);
+
+		if (result == CommandResult::SHUTDOWN)
+			break;
+
+		if (result == CommandResult::NOTFOUND)
+			warning() << "unknown command (" << cmd << ")";
+
+		System::flushStream(stdout);
+	}
+
+	reader.setRunning(false);
+
+	Thread::yield();
+
+	reader.join();
+
+	consoleCommandPipe.close();
+
+	info(true) << "Console Closed";
+}
+
+void ServerCore::processConfig() {
+	if (!configManager->loadConfigData())
+		warning("missing config file.. loading default values");
+}
+
+int ServerCore::getSchemaVersion() {
+	if (instance != nullptr && instance->database != nullptr)
+		return instance->database->getSchemaVersion();
+
+	return -1;
+}
+
+coredetail::ConsoleReaderService::ConsoleReaderService(ServerCore* serverCoreInstance) : ServiceThread("ConsoleReader"), core(serverCoreInstance) {
+}
+
+bool coredetail::ConsoleReaderService::inputAvailable() const {
+#ifndef PLATFORM_WIN
+	struct timeval tv = {};
+	tv.tv_sec = 1;
+	tv.tv_usec = 0;
+
+	fd_set fds;
+
+	FD_ZERO(&fds);
+	FD_SET(STDIN_FILENO, &fds);
+
+	auto ret = select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv);
+
+	fatal(ret != -1) << "select on stdin failed";
+
+	return FD_ISSET(STDIN_FILENO, &fds);
+#else
+	static auto stdinHandle = [this] () {
+		auto handle = GetStdHandle(STD_INPUT_HANDLE);
+
+		fatal(handle) << "GetStdHandle returned null stdin handle";
+
+		return handle;
+	} ();
+
+	switch (WaitForSingleObject(stdinHandle, 1000)) {
+	case WAIT_OBJECT_0:
+		return true;
+	default:
+		return false;
+	}
+#endif
+}
+
+void coredetail::ConsoleReaderService::run() {
+	setReady(true);
+
+	while (doRun.get(std::memory_order_seq_cst)) {
+		char* res = nullptr;
+
+#ifndef PLATFORM_WIN
+		char line[PIPE_BUF];
+#else
+		char line[256];
+#endif
+
+		if (!inputAvailable())
+			continue;
+
+		res = fgets(line, sizeof(line), stdin);
+
+		if (!res)
+			continue;
+
+		auto cmd = String(line).trim();
+
+		if (cmd.isEmpty())
+			continue;
+
+		core->queueConsoleCommand(cmd);
+	}
+}
